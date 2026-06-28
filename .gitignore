@@ -1,0 +1,38 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Node / Frontend
+node_modules/
+.next/
+out/
+build/
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python / Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.env
+
+# Satellite Data / AI Checkpoints
+checkpoints/
+outputs/
+data/
+*.npy
+*.tif
+*.tiff
+*.geojson
+*.pdf
+*.zip
+*.tar.gz

@@ -1,0 +1,134 @@
+/* CloudFreeAI Custom Telemetry Styling */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+/* Typography Config */
+body {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: #0b0f19;
+}
+
+.font-sans {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #070b13;
+}
+::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+}
+
+/* Leaflet Map Cyber Theme Overrides */
+.leaflet-container {
+    background: #070b13 !important;
+}
+
+/* Apply dark telemetry filter to standard street map base tiles */
+.leaflet-tile-container img {
+    filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%) !important;
+}
+
+/* Custom Leaflet Zoom & Controls Restyling */
+.leaflet-bar {
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+.leaflet-bar a {
+    background-color: #0f172a !important;
+    color: #38bdf8 !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+.leaflet-bar a:hover {
+    background-color: #1e293b !important;
+    color: #38bdf8 !important;
+}
+
+/* Neon Glow Animations */
+@keyframes neonGlowCyan {
+    0%, 100% { box-shadow: 0 0 4px rgba(2, 132, 199, 0.4), inset 0 0 2px rgba(2, 132, 199, 0.2); }
+    50% { box-shadow: 0 0 10px rgba(2, 132, 199, 0.6), inset 0 0 4px rgba(2, 132, 199, 0.4); }
+}
+
+.glow-cyan {
+    animation: neonGlowCyan 2.5s infinite ease-in-out;
+}
+
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+/* Telemetry Grid Line effects */
+.telemetry-grid {
+    position: relative;
+}
+.telemetry-grid::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+
+/* Swipe Split Screen Map Layout */
+.leaflet-s1-sar, .leaflet-cloudy-liss4, .leaflet-recon-liss4, .leaflet-confidence, .leaflet-flood, .leaflet-ndvi, .leaflet-difference {
+    pointer-events: none;
+}
+
+/* Customized range inputs */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #1e293b;
+    border-radius: 9999px;
+    height: 6px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f97316;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
+    transition: transform 0.1s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Dynamic severity colors */
+.severity-low {
+    color: #4ade80 !important;
+    border-color: #4ade80 !important;
+    background-color: rgba(74, 222, 128, 0.1) !important;
+}
+.severity-moderate {
+    color: #fbbf24 !important;
+    border-color: #fbbf24 !important;
+    background-color: rgba(251, 191, 36, 0.1) !important;
+}
+.severity-high {
+    color: #f97316 !important;
+    border-color: #f97316 !important;
+    background-color: rgba(249, 115, 22, 0.1) !important;
+}
+.severity-critical {
+    color: #f87171 !important;
+    border-color: #f87171 !important;
+    background-color: rgba(248, 113, 113, 0.1) !important;
+}
