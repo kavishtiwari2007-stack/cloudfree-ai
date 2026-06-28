@@ -18,6 +18,7 @@ def verify_imports():
         ("processing.calibration", ["RadiometricCalibrator"]),
         ("processing.cloud_masking", ["CloudShadowMasker"]),
         ("processing.coregistration", ["ImageCoRegisterer"]),
+        ("processing.validation", ["ScientificValidator"]),
         ("config", ["settings"]),
         ("services.db", ["verify_postgis_support"]),
         ("services.gemini", ["GeminiReportGenerator"])
@@ -38,7 +39,7 @@ def verify_imports():
 
     print("------------------------------------------")
     if success:
-        print("SUCCESS: All models and dependencies are structurally valid.")
+        print("SUCCESS: All models, processing modules, and dependencies are structurally valid.")
         sys.exit(0)
     else:
         print("ERROR: One or more import verification checks failed.")

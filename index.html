@@ -106,6 +106,17 @@
                                 <i class="fa-solid fa-cloud-arrow-up"></i> Upload GeoJSON AOI
                             </button>
                         </div>
+
+                        <!-- Historical Reference Image Search & Ranking -->
+                        <div class="mt-2 p-2 bg-[#070b13] border border-[#1e293b] rounded text-[10px] space-y-1.5">
+                            <div class="font-semibold text-[#0284c7] border-b border-[#1e293b] pb-0.5 flex justify-between">
+                                <span>HISTORICAL IMAGE ARCHIVE RANKING</span>
+                                <span class="text-emerald-400 font-bold">0.2% Cloud Min</span>
+                            </div>
+                            <div id="reference-ranking-list" class="space-y-1 text-[9px] text-slate-300">
+                                <!-- Filled dynamically by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -274,7 +285,7 @@
         <section class="w-96 border-l border-[#1e293b] bg-[#0f172a]/80 backdrop-blur-md flex flex-col overflow-y-auto shrink-0 z-40">
             <div class="p-3 border-b border-[#1e293b] bg-[#0284c7]/5 flex justify-between items-center">
                 <span class="text-xs font-bold text-[#38bdf8] tracking-widest"><i class="fa-solid fa-brain mr-2"></i>DISASTER INTELLIGENCE</span>
-                <span id="report-severity-badge" class="text-[9px] bg-[#ef4444]/20 border border-[#ef4444] text-[#f87171] px-1.5 py-0.5 rounded font-bold">READY</span>
+                <span id="report-severity-badge" class="text-[9px] bg-slate-500/20 border border-slate-500 text-slate-400 px-1.5 py-0.5 rounded font-bold">READY</span>
             </div>
 
             <!-- Severity Telemetry Cards -->
@@ -297,6 +308,32 @@
                 </div>
             </div>
 
+            <!-- Scientific Quality Assessment Validation Metrics -->
+            <div class="p-3 border-b border-[#1e293b] bg-[#070b13]/90">
+                <div class="text-[10px] font-bold text-[#0284c7] tracking-wider mb-2 flex justify-between items-center">
+                    <span><i class="fa-solid fa-square-poll-vertical mr-1"></i> SCIENTIFIC VALIDATION METRICS</span>
+                    <span id="metric-check-badge" class="text-[8px] bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1 py-0.5 rounded font-bold">READY</span>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] text-slate-300">
+                    <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
+                        <span class="text-slate-500">PSNR Value:</span>
+                        <span id="metric-psnr" class="font-bold text-[#38bdf8]">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
+                        <span class="text-slate-500">SSIM Index:</span>
+                        <span id="metric-ssim" class="font-bold text-emerald-400">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
+                        <span class="text-slate-500">RMSE Diff:</span>
+                        <span id="metric-rmse" class="font-bold text-[#f97316]">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
+                        <span class="text-slate-500">SAM (rad):</span>
+                        <span id="metric-sam" class="font-bold text-[#38bdf8]">--</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- AI Report Body -->
             <div class="flex-1 p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2">
@@ -305,7 +342,7 @@
                 </div>
                 
                 <!-- Report Markdown Box -->
-                <div id="report-content" class="flex-1 bg-[#070b13] border border-[#1e293b] rounded p-3 text-xs text-slate-300 overflow-y-auto leading-relaxed font-sans min-h-[250px]">
+                <div id="report-content" class="flex-1 bg-[#070b13] border border-[#1e293b] rounded p-3 text-xs text-slate-300 overflow-y-auto leading-relaxed font-sans min-h-[200px]">
                     <div class="h-full flex flex-col justify-center items-center text-center text-slate-500 font-mono text-[10px]">
                         <i class="fa-solid fa-satellite text-3xl mb-2 text-slate-600"></i>
                         <span>Click 'TRIGGER AI PIPELINE' to reconstruct the scene, execute segmentation analysis, and generate the damage report.</span>
@@ -342,7 +379,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- MapLibre Sync and custom modules can be imported here -->
     <!-- Custom JS Dashboard logic -->
     <script src="script.js"></script>
 </body>
