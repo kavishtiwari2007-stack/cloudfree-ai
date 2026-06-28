@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
             zoom: 13,
             bounds: [[9.90, 76.23], [9.96, 76.30]],
             stats: { floodArea: "42.8 km²", waterDepth: "1.24 m", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
-            metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", conf: "92.4%", reliability: "0.9240" },
+            metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", iou: "0.895", boundaryAcc: "91.2%", conf: "92.4%", reliability: "0.9240" },
             rankings: [
                 { id: "RS2_L4_2024", date: "2024-02-12", cloud: "0.2%", rank: 1, sensor: "Resourcesat-2" },
                 { id: "RS2_L4_2023", date: "2023-01-20", cloud: "2.1%", rank: 2, sensor: "Resourcesat-2" },
@@ -48,7 +48,7 @@ A heavy precipitation event triggered by active monsoon currents has resulted in
             zoom: 14,
             bounds: [[30.71, 79.04], [30.76, 79.09]],
             stats: { floodArea: "4.2 km²", waterDepth: "0.45 m", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
-            metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", conf: "88.7%", reliability: "0.8870" },
+            metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", iou: "0.812", boundaryAcc: "84.8%", conf: "88.7%", reliability: "0.8870" },
             rankings: [
                 { id: "RS2_L4_2025", date: "2025-03-01", cloud: "0.5%", rank: 1, sensor: "Resourcesat-2" },
                 { id: "RS2A_L4_2024", date: "2024-04-10", cloud: "1.8%", rank: 2, sensor: "Resourcesat-2A" },
@@ -83,7 +83,7 @@ A localized cloudburst triggered a major debris flow landslide blocking the Mand
             zoom: 13,
             bounds: [[13.05, 80.23], [13.11, 80.30]],
             stats: { floodArea: "56.1 km²", waterDepth: "2.10 m", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
-            metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", conf: "94.1%", reliability: "0.9410" },
+            metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", iou: "0.924", boundaryAcc: "93.6%", conf: "94.1%", reliability: "0.9410" },
             rankings: [
                 { id: "RS2A_L4_2025", date: "2025-05-18", cloud: "0.1%", rank: 1, sensor: "Resourcesat-2A" },
                 { id: "RS2_L4_2024", date: "2024-06-02", cloud: "2.4%", rank: 2, sensor: "Resourcesat-2" },
@@ -386,13 +386,11 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
                 ctx.beginPath(); ctx.rect(80, 80, 110, 80); ctx.arc(200, 300, 60, 0, Math.PI * 2); ctx.fill();
             }
         }
-        // New Explainability Layers: Attention Map (XAI)
         else if (layerType === "attention") {
             ctx.clearRect(0, 0, 512, 512);
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(0, 0, 512, 512);
             
-            // Draw glowing yellow hotspots over edges
             ctx.strokeStyle = "rgba(253, 224, 71, 0.85)";
             ctx.shadowColor = "#fde047";
             ctx.shadowBlur = 15;
@@ -409,17 +407,14 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
                 ctx.arc(200, 300, 60, 0, Math.PI * 2);
             }
             ctx.stroke();
-            ctx.shadowBlur = 0; // Reset
+            ctx.shadowBlur = 0;
         }
-        // New Explainability Layers: Uncertainty Map
         else if (layerType === "uncertainty") {
-            // White under clouds, black in clear areas
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, 512, 512);
             
-            // Gaussian blurred uncertainty gradients under cloud coordinates
             const grad1 = ctx.createRadialGradient(130, 100, 0, 130, 100, 80);
-            grad1.addColorStop(0, "#fff"); // High uncertainty
+            grad1.addColorStop(0, "#fff");
             grad1.addColorStop(1, "rgba(0,0,0,0)");
             ctx.fillStyle = grad1; ctx.beginPath(); ctx.arc(130, 100, 80, 0, Math.PI * 2); ctx.fill();
 
@@ -643,8 +638,8 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         document.getElementById("metric-rmse").innerText = "--";
         document.getElementById("metric-sam").innerText = "--";
         document.getElementById("metric-ndvi-delta").innerText = "--";
-        document.getElementById("metric-conf").innerText = "--";
-        document.getElementById("metric-reliability").innerText = "--";
+        document.getElementById("metric-iou").innerText = "--";
+        document.getElementById("metric-boundary-acc").innerText = "--";
         
         const qBadge = document.getElementById("metric-check-badge");
         qBadge.innerText = "READY";
@@ -653,7 +648,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         document.getElementById("report-content").innerHTML = `
             <div class="h-full flex flex-col justify-center items-center text-center text-slate-500 font-mono text-[10px]">
                 <i class="fa-solid fa-satellite text-3xl mb-2 text-slate-600"></i>
-                <span>Click 'TRIGGER AI PIPELINE' to reconstruct the scene, execute segmentation analysis, and generate the damage report.</span>
+                <span>Click 'TRIGGER ORCHESTRATOR' to reconstruct the scene, execute segmentation analysis, and generate the damage report.</span>
             </div>
         `;
         toggleExports(false);
@@ -686,19 +681,20 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         const selectedRefId = activeLoc.rankings[0].id;
 
         const steps = [
-            { text: "Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...", time: 400, prog: 8 },
-            { text: "Orchestrator: Ranking historical reference scenes (Season, Solar elevation, Cloud %)...", time: 900, prog: 15 },
-            { text: `Orchestrator: Best Reference Selection: ${selectedRefId} chosen (Cloud: ${activeLoc.rankings[0].cloud})...`, time: 1300, prog: 22 },
-            { text: "Orchestrator: Download Manager pulling current Sentinel-1 SAR orbit files and optical bands...", time: 1800, prog: 30 },
-            { text: "Orchestrator: Verifying metadata variables, band compatibility, and coordinate bounds...", time: 2300, prog: 38 },
-            { text: "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter -> Normalization)...", time: 2900, prog: 48 },
-            { text: "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric Dark Object Subtraction -> Band Normalization -> Histogram Matching -> Seasonal Normalization)...", time: 3500, prog: 58 },
-            { text: "Orchestrator: Swapping registry models (CloudNet_v1.2 and TemporalDiffusion_v3.4 loaded)...", time: 4000, prog: 68 },
-            { text: "Orchestrator: Geometric Co-Registration using LoFTR sub-pixel alignment...", time: 4500, prog: 74 },
-            { text: "Orchestrator: Running Temporal Fusion Transformer & Denoising Diffusion Reconstruction...", time: 5100, prog: 82 },
-            { text: "Orchestrator: Synthesizing Explainability Layer (generating Attention maps and Uncertainty maps)...", time: 5700, prog: 90 },
-            { text: "Orchestrator: Executing multi-category QA Validation split (Reconstruction, Spectral, Uncertainty)...", time: 6300, prog: 96 },
-            { text: "Orchestrator: Scene reconstruction pipeline successfully finalized. QA passed.", time: 6800, prog: 100 }
+            { text: "Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...", time: 400, prog: 5 },
+            { text: "Orchestrator: Ranking reference imagery (Cloud percentage, season similarity, temporal distance)...", time: 900, prog: 12 },
+            { text: "Orchestrator: Checking local Spatial DB Raster Cache... Cache Miss.", time: 1300, prog: 20 },
+            { text: "Orchestrator: Activating Download Manager to pull current SAR orbit files and optical bands...", time: 1800, prog: 28 },
+            { text: "Orchestrator: Verifying metadata variables, map projection grids, and band constraints...", time: 2200, prog: 34 },
+            { text: "Orchestrator: Running Image Quality Assessment (IQA) -> Cloud % (78%), Striping (none), Radiometry (none) -> Scene ACCEPTED.", time: 2700, prog: 40 },
+            { text: "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter)...", time: 3300, prog: 48 },
+            { text: "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching -> Seasonal Normalization)...", time: 3900, prog: 58 },
+            { text: "Orchestrator: Initializing Model Registry checkpoint v2.4.1 (Performance monitoring active)...", time: 4400, prog: 68 },
+            { text: "Orchestrator: Executing Co-Registration & Physics-Guided Multi-Modal SAR-Optical Fusion Engine...", time: 4900, prog: 78 },
+            { text: "Orchestrator: Generating Explainability Layer (Feature Importance, Pixel Attribution, and Confidence heatmaps)...", time: 5400, prog: 88 },
+            { text: "Orchestrator: Compiling split Quality Assurance Validation (Image Quality, Spectral Integrity, Geometric Consistency)...", time: 5900, prog: 94 },
+            { text: "Orchestrator: Booting Emergency Decision Support Engine (Estimated flood depth, population exposure, road accessibility)...", time: 6400, prog: 98 },
+            { text: "Orchestrator: Pipeline execution completed successfully. Output files updated.", time: 6900, prog: 100 }
         ];
 
         steps.forEach((step, index) => {
@@ -720,9 +716,9 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         
         pipStatus.innerText = "NOMINAL";
         pipStatus.className = "text-emerald-400 font-bold";
-        appendLog("[SUCCESS] Quality Assurance checks passed. Attention mapping online.", "text-emerald-400 font-bold");
+        appendLog("[SUCCESS] Geoprocessing run finished nominal. Attention and QA validation indices populated.", "text-emerald-400 font-bold");
 
-        // 1. Show reconstructed, flood, and attention overlays
+        // 1. Show layers
         overlayLayers["reconstructed"].addTo(map);
         overlayLayers["flood"].addTo(map);
         overlayLayers["attention"].addTo(map);
@@ -738,12 +734,14 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         badge.innerText = activeLoc.stats.severity;
         badge.className = `text-[9px] px-1.5 py-0.5 rounded font-bold severity-${activeLoc.stats.severity.toLowerCase()}`;
 
-        // 3. Populate QA validation split
+        // 3. Populate split validation parameters
         document.getElementById("metric-psnr").innerText = activeLoc.metrics.psnr;
         document.getElementById("metric-ssim").innerText = activeLoc.metrics.ssim;
         document.getElementById("metric-rmse").innerText = activeLoc.metrics.rmse;
         document.getElementById("metric-sam").innerText = activeLoc.metrics.sam;
         document.getElementById("metric-ndvi-delta").innerText = activeLoc.metrics.ndviDelta;
+        document.getElementById("metric-iou").innerText = activeLoc.metrics.iou;
+        document.getElementById("metric-boundary-acc").innerText = activeLoc.metrics.boundaryAcc;
         document.getElementById("metric-conf").innerText = activeLoc.metrics.conf;
         document.getElementById("metric-reliability").innerText = activeLoc.metrics.reliability;
         

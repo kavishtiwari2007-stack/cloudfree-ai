@@ -1,53 +1,60 @@
 # CloudFreeAI: AI-Powered Multi-Temporal Satellite Reconstruction & Disaster Intelligence
 
-CloudFreeAI is a research-grade remote sensing and disaster intelligence platform designed for the **Bharatiya Antariksh Hackathon (BAH) 2026**. It reconstructs cloud-covered, high-resolution optical satellite imagery (specifically Resourcesat-2/2A LISS-IV) by fusing historical cloud-free optical datasets with current Sentinel-1 Synthetic Aperture Radar (SAR) observations, outputting both reconstructed images, attention vectors, and pixel-level confidence maps.
+CloudFreeAI is a research-grade remote sensing and disaster intelligence platform designed for the **Bharatiya Antariksh Hackathon (BAH) 2026**. It reconstructs cloud-covered, high-resolution optical satellite imagery (Resourcesat-2/2A LISS-IV) by constraining reconstructions with current Sentinel-1 Synthetic Aperture Radar (SAR) observations and historical cloud-free baselines, preserving physical and scientific accuracy.
 
 ---
 
-## 🛰️ System Architecture & Data Flow
+## 🛰️ Operational System Architecture
 
 ```mermaid
 graph TD
-    User([User GIS Client]) -->|1. Select AOI / Request| API[FastAPI Gateway]
-    API -->|2. Initial Request| Orch[Central Workflow Orchestrator]
+    User([User GIS Client]) -->|1. Request Area of Interest| API[FastAPI Gateway]
+    API -->|2. Delegate to Task Broker| Orch[Central Workflow Orchestrator]
     
-    subgraph Registry [Model Registry]
-        MR[Model Registry DB] -->|Resolve weights| Orch
+    subgraph MLOps [MLOps & Model Registry Layer]
+        MR[Model Registry DB] -->|Model Checkpoints| Version[Model Versioning v2.4.1]
+        Version -->|Deploy Weights| Service[Inference Service Engine]
+        Service -->|Real-time Performance| Monitor[Performance Monitoring & Logging]
+        Monitor -->|Telemetric State| Orch
     end
 
-    %% Ingestion
-    Orch -->|3. Query Discovery| Disc[Dataset Discovery Engine]
+    %% Ingestion & Discovery
+    Orch -->|3. Query Metadata| Disc[Dataset Discovery Engine]
     
     subgraph Discovery [Data Discovery & Ingestion]
-        Disc -->|Metadata Search| MetaQuery[Bhoonidhi Catalog Query]
-        MetaQuery -->|Filter Cloud %| CloudFilt[Cloud Coverage Filter]
+        Disc -->|Metadata Search| MetaQuery[Bhoonidhi Catalog Search]
+        MetaQuery -->|Filter Cloud Cover| CloudFilt[Cloud Coverage Filter]
         CloudFilt -->|Acquisition Season / Solar angle| TempRank[Temporal Rank Engine]
         TempRank -->|Reference Selection| RefSel[Reference Scene Selection]
         RefSel -->|Enqueue Download| DL[Download Manager]
     end
 
+    %% Spatial DB Caching
+    DL -->|Raw Orbit & Raster files| Cache[Spatial DB Raster Cache]
+    Cache -->|Validate Bounds| MetaVal[Metadata Validation: Bands & Projections]
+
+    %% Data Quality Filter / Image Quality Assessment
+    MetaVal -->|Radiometric DN check| IQA[Image Quality Assessment: cloud %, missing bands, striping, sensor errors]
+    IQA -->|Filter evaluation| AcceptReject{Accept / Reject Scene}
+    
     subgraph Preprocessing [Scientific Preprocessing Module]
-        DL -->|Raw Orbit Files & Bands| MetaVal[Metadata Validation: Bands, Projections, Timestamps]
-        
-        %% SAR Preprocessing
-        MetaVal -->|SAR VV/VH| S1_1[SAR Orbit Correction]
+        AcceptReject -->|If Accepted - SAR VV/VH| S1_1[SAR Orbit Correction]
         S1_1 --> S1_2[SAR Thermal Noise Removal]
         S1_2 --> S1_3[SAR Radiometric Calibration]
         S1_3 --> S1_4[SAR Range-Doppler Terrain Correction]
         S1_4 --> S1_5[SAR Speckle Filtering: Refined Lee]
         S1_5 --> S1_6[SAR Amplitude Normalization]
         
-        %% Optical Preprocessing
-        MetaVal -->|Historical Optical| Opt_1[TOA Reflectance Calibration]
+        AcceptReject -->|If Accepted - Optical| Opt_1[TOA Reflectance Calibration]
         Opt_1 --> Opt_2[Atmospheric Correction: Dark Object Subtraction]
         Opt_2 --> Opt_3[Band Normalization]
         Opt_3 --> Opt_4[Histogram Matching]
         Opt_4 --> Opt_5[Seasonal Normalization]
     end
     
-    subgraph AI [AI Reconstruction Constraints Engine]
-        S1_6 -->|SAR Guidance Constraints| OptEnc[Historical Optical Encoder]
-        Opt_5 -->|Historical Baseline| SAREnc[Current SAR Encoder]
+    subgraph AI [Physics-Guided Multi-Modal SAR-Optical Fusion Engine]
+        Opt_5 -->|Historical Baseline| OptEnc[Historical Optical Encoder]
+        S1_6 -->|Current SAR Guidance Constraints| SAREnc[Current SAR Encoder]
         
         OptEnc & SAREnc --> TempFuse[Spatial-Temporal Fusion Transformer]
         TempFuse --> CrossAttn[Cross-Attention Interpolation]
@@ -58,32 +65,40 @@ graph TD
     subgraph Explain [Explainable AI Layer]
         SpecCons --> AttnM[Attention Weights Synthesis]
         SpecCons --> UncertM[Pixel Uncertainty Estimation]
+        SpecCons --> FeatImp[Feature Importance & Pixel Attribution]
     end
 
     subgraph QA [Quality Assurance Validation Split]
-        AttnM & UncertM --> ReconstructionQA[Reconstruction Validation: PSNR, SSIM, RMSE]
-        AttnM & UncertM --> SpectralQA[Spectral Validation: SAM, NDVI Delta]
-        AttnM & UncertM --> UncertaintyQA[Uncertainty Validation: Confidence Score, Pixel Reliability]
+        AttnM & UncertM & FeatImp --> ReconstructionQA[I. Image Quality: PSNR, SSIM, RMSE]
+        AttnM & UncertM & FeatImp --> SpectralQA[II. Spectral Integrity: SAM, NDVI Delta]
+        AttnM & UncertM & FeatImp --> GeometricQA[III. Geometric Consistency: IoU Score, Boundary Accuracy]
     end
 
-    subgraph Disaster [Disaster Intelligence Engine]
-        ReconstructionQA & SpectralQA & UncertaintyQA --> FloodSeg[DeepLabV3+ Flood Segmentation]
-        ReconstructionQA & SpectralQA & UncertaintyQA --> ChangeDet[Siamese ViT Change Detection]
+    subgraph Disaster [Disaster Emergency Decision Support Engine]
+        ReconstructionQA & SpectralQA & GeometricQA --> FloodSeg[DeepLabV3+ Flood Segmentation]
+        ReconstructionQA & SpectralQA & GeometricQA --> ChangeDet[Siamese ViT Change Detection]
         
-        FloodSeg & ChangeDet --> DamEval[Road, Bridge, Crop Inundation & Village Isolation Analysis]
-        DamEval --> WaterDepth[Water Depth Estimation]
-        WaterDepth --> RescueIndex[Rescue Priority & Inundation Severity Indexing]
+        FloodSeg & ChangeDet --> DamEval[Road Accessibility & Bridge Connectivity Evaluator]
+        DamEval --> WaterDepth[Estimated Flood Depth: Model-Based]
+        WaterDepth --> Population[Population Exposure & Hospital Accessibility Indexing]
+        Population --> RescueIndex[Emergency Priority Index]
     end
-    
-    RescueIndex -->|Raster Maps| DB[(PostgreSQL + PostGIS)]
-    RescueIndex -->|Metrics & Data| Gemini[Gemini 1.5 Pro Report Generator]
-    Gemini -->|Full Output Array: GeoTIFF, GeoJSON, XAI Maps, PDF & PPTX Reports| User
+
+    subgraph OutputArray [Full Output Data Array]
+        RescueIndex -->|GeoTIFF Rasters| GeoTiff[GeoTIFF Band Map]
+        RescueIndex -->|Vector Bounds| GeoJson[Flood GeoJSON]
+        RescueIndex -->|XAI Heatmaps| XaiMap[Explainability Maps]
+    end
+
+    subgraph Reporting [Explanation & Output Layer]
+        GeoTiff & GeoJson & XaiMap --> Gemini[Gemini 1.5 Pro Report Generator]
+        Gemini -->|PDF report| PDF[Official Emergency PDF]
+        Gemini -->|PowerPoint| PPTX[Brief PowerPoint Briefing]
+        Gemini -->|Executive Summary| Summary[Interactive Executive Chat]
+    end
+
+    Summary --> User
 ```
-
----
-
-## 🛰️ Physical Remote Sensing Constraint Note
-In this architecture, **Sentinel-1 SAR backscatter observations are utilized as physical constraints** to guide and bound the conditional diffusion model. Because SAR and optical sensors capture fundamentally different physical phenomena (microwave surface roughness/moisture vs solar reflectance), SAR data is NOT directly converted to optical bands. Instead, it constrains the spatial boundaries of features (e.g., water boundaries, landslides) during optical reconstruction.
 
 ---
 
@@ -101,9 +116,28 @@ In this architecture, **Sentinel-1 SAR backscatter observations are utilized as 
 - **TOA Calibration**: Standardizes sensor input variables based on solar distance and acquisition date.
 - **Atmospheric Correction**: Dark Object Subtraction (DOS) offsets haze.
 - **Band Normalization**: Standardizes multi-spectral channels (R, G, B, NIR).
-- **Histogram Matching**: Corrects radiometric differences between historical reference scenes and current images.
-- **Seasonal Normalization**: Compensates for phenological changes.
+- **Histogram Matching**: Radiometric conversion of historical baselines using the target scene histogram.
+- **Seasonal Normalization**: Corrects phenological variations across seasonal offsets.
 
+---
+
+## 🛰️ Physical Remote Sensing Constraint Note
+In this architecture, **Sentinel-1 SAR backscatter observations are utilized as physical constraints** to guide and bound the conditional diffusion model. Because SAR and optical sensors capture fundamentally different physical phenomena (microwave surface roughness/moisture vs solar reflectance), SAR data is NOT directly converted to optical bands. Instead, it constrains the spatial boundaries of features (e.g., water boundaries, landslides) during optical reconstruction.
+
+---
+
+## 🌟 Future Extension Modules (Roadmap)
+```
+Weather Forecast API --> Rainfall Prediction --> Future Flood Risk Estimation
+```
+*Note: Weather forecasting is labeled as a future extension module to maintain separation from the current satellite surface reconstruction engine.*
+
+---
+
+## 🧑‍💻 End User Dashboard Flow
+```
+User --> Dashboard --> AOI Selection --> AI Processing --> Results --> Layer Controls --> Compare Before/After --> Download GeoTIFF/GeoJSON --> Generate AI Report --> Interactive AI Chat
+```
 ---
 
 ## 📂 Code Layout
@@ -114,18 +148,3 @@ In this architecture, **Sentinel-1 SAR backscatter observations are utilized as 
 - `/database`: PostGIS database schema definitions and spatial queries.
 - `/scripts`: Python training and verification utilities.
 - `/index.html`: Standalone, zero-setup GIS client for client-side local demonstrations.
-
----
-
-## 🚀 Running the System (Docker Compose)
-
-To spin up the database, Redis queue, background workers, backend API, and frontend server:
-
-```bash
-docker-compose up --build
-```
-
-The services will expose:
-- Frontend Dashboard: `http://localhost:3000`
-- Backend API Docs: `http://localhost:8000/docs`
-- PostgreSQL Database: `localhost:5432`

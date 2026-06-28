@@ -76,7 +76,7 @@
                 <!-- Step 1: Location Selection -->
                 <div class="border border-[#1e293b] rounded bg-[#0b0f19]/70 overflow-hidden">
                     <div class="p-2.5 bg-[#1e293b]/50 text-xs font-bold flex justify-between items-center cursor-pointer border-b border-[#1e293b]">
-                        <span>1. GEOSPATIAL REGION & DATA SEARCH</span>
+                        <span>1. GEOSPATIAL DATA SEARCH</span>
                         <i class="fa-solid fa-chevron-down text-slate-500 text-[10px]"></i>
                     </div>
                     <div class="p-3 space-y-3">
@@ -155,8 +155,9 @@
                         </div>
                         
                         <div class="space-y-1.5 pt-1.5 border-t border-[#1e293b]">
-                            <div class="text-[9px] text-slate-500 font-bold mb-1">ACTIVE REGISTRY STATUS</div>
-                            <div class="text-[9px] text-[#0284c7] font-semibold"><i class="fa-solid fa-database mr-1"></i> ModelRegistry: active, weights online</div>
+                            <div class="text-[9px] text-slate-500 font-bold mb-1">MLOPS LAYER TELEMETRY</div>
+                            <div class="text-[9px] text-[#0284c7] font-semibold"><i class="fa-solid fa-server mr-1"></i> Registry: active (v2.4.1 checkpoint)</div>
+                            <div class="text-[8px] text-slate-500"><i class="fa-solid fa-chart-line mr-1"></i> Inference Monitoring: NOMINAL</div>
                             
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 mt-2">
                                 <input type="checkbox" id="chk-spectral" checked class="accent-[#0284c7]">
@@ -297,7 +298,7 @@
                     <div id="stat-flood-area" class="text-base font-bold text-[#38bdf8] mt-0.5">--</div>
                 </div>
                 <div class="bg-[#0b0f19] border border-[#1e293b] p-2 rounded">
-                    <div class="text-[9px] text-slate-400 uppercase">Avg Water Depth</div>
+                    <div class="text-[9px] text-slate-400 uppercase">Est Flood Depth (Model)</div>
                     <div id="stat-water-depth" class="text-base font-bold text-cyan-400 mt-0.5">--</div>
                 </div>
                 <div class="bg-[#0b0f19] border border-[#1e293b] p-2 rounded">
@@ -305,7 +306,7 @@
                     <div id="stat-road-damage" class="text-base font-bold text-red-400 mt-0.5">--</div>
                 </div>
                 <div class="bg-[#0b0f19] border border-[#1e293b] p-2 rounded">
-                    <div class="text-[9px] text-slate-400 uppercase">Rescue Priority Index</div>
+                    <div class="text-[9px] text-slate-400 uppercase">Emergency Priority Index</div>
                     <div id="stat-priority-score" class="text-base font-bold text-[#f97316] mt-0.5">--</div>
                 </div>
             </div>
@@ -317,9 +318,9 @@
                     <span id="metric-check-badge" class="text-[8px] bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1 py-0.5 rounded font-bold">READY</span>
                 </div>
                 
-                <!-- Category 1: Reconstruction Validation -->
+                <!-- Category 1: Image Quality -->
                 <div class="space-y-1">
-                    <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">I. Reconstruction Validation</div>
+                    <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">I. Image Quality (Structural Accuracy)</div>
                     <div class="grid grid-cols-3 gap-1.5 text-[9px] text-slate-300 font-mono">
                         <div class="bg-[#0b0f19] border border-[#1e293b]/50 p-1 text-center rounded">
                             <span class="block text-[7px] text-slate-500">PSNR (dB)</span>
@@ -336,10 +337,10 @@
                     </div>
                 </div>
 
-                <!-- Category 2 & 3: Spectral & Uncertainty -->
+                <!-- Category 2 & 3: Spectral & Geometric -->
                 <div class="grid grid-cols-2 gap-3 pt-1">
                     <div class="space-y-1">
-                        <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">II. Spectral Validation</div>
+                        <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">II. Spectral Integrity</div>
                         <div class="space-y-1 text-[8px] text-slate-300 font-mono">
                             <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
                                 <span class="text-slate-500">SAM (rad):</span>
@@ -352,18 +353,24 @@
                         </div>
                     </div>
                     <div class="space-y-1">
-                        <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">III. Uncertainty Check</div>
+                        <div class="text-[8px] text-[#f97316] font-bold tracking-wider uppercase">III. Geometric Consistency</div>
                         <div class="space-y-1 text-[8px] text-slate-300 font-mono">
                             <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
-                                <span class="text-slate-500">Confidence:</span>
-                                <span id="metric-conf" class="font-bold text-[#38bdf8]">--</span>
+                                <span class="text-slate-500">IoU Score:</span>
+                                <span id="metric-iou" class="font-bold text-[#38bdf8]">--</span>
                             </div>
                             <div class="flex justify-between border-b border-[#1e293b] pb-0.5">
-                                <span class="text-slate-500">Reliability:</span>
-                                <span id="metric-reliability" class="font-bold text-emerald-400">--</span>
+                                <span class="text-slate-500">Boundary Acc:</span>
+                                <span id="metric-boundary-acc" class="font-bold text-emerald-400">--</span>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Hidden block to preserve bindings -->
+                <div class="hidden">
+                    <span id="metric-conf">--</span>
+                    <span id="metric-reliability">--</span>
                 </div>
             </div>
 
@@ -375,10 +382,10 @@
                 </div>
                 
                 <!-- Report Markdown Box -->
-                <div id="report-content" class="flex-1 bg-[#070b13] border border-[#1e293b] rounded p-3 text-xs text-slate-300 overflow-y-auto leading-relaxed font-sans min-h-[180px]">
+                <div id="report-content" class="flex-1 bg-[#070b13] border border-[#1e293b] rounded p-3 text-xs text-slate-300 overflow-y-auto leading-relaxed font-sans min-h-[150px]">
                     <div class="h-full flex flex-col justify-center items-center text-center text-slate-500 font-mono text-[10px]">
                         <i class="fa-solid fa-satellite text-3xl mb-2 text-slate-600"></i>
-                        <span>Click 'TRIGGER AI PIPELINE' to reconstruct the scene, execute segmentation analysis, and generate the damage report.</span>
+                        <span>Click 'TRIGGER ORCHESTRATOR' to reconstruct the scene, execute segmentation analysis, and generate the damage report.</span>
                     </div>
                 </div>
 

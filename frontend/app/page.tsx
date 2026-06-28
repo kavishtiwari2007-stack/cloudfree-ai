@@ -22,7 +22,7 @@ const LOCATIONS = {
     lat: 9.9312,
     lon: 76.2673,
     stats: { floodArea: "42.8 km²", waterDepth: "1.24 m", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
-    metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", conf: "92.4%", reliability: "0.9240" },
+    metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", iou: "0.895", boundaryAcc: "91.2%", conf: "92.4%", reliability: "0.9240" },
     rankings: [
       { id: "RS2_L4_2024", date: "2024-02-12", cloud: "0.2%", rank: 1, sensor: "Resourcesat-2" },
       { id: "RS2_L4_2023", date: "2023-01-20", cloud: "2.1%", rank: 2, sensor: "Resourcesat-2" },
@@ -31,7 +31,7 @@ const LOCATIONS = {
     report: `## DISASTER ASSESSMENT: KERALA MONSOON FLOODING
 - **Reconstruction Confidence:** 92.4%
 - **Inundated Area:** 42.8 sq km
-- **Avg Water Depth:** 1.24 meters
+- **Est Flood Depth:** 1.24 meters (Model-Based)
 - **NH-66 Road Blockage:** 12.4 km submerged.
 
 > **CRITICAL DIRECTIVE:** Evacuate Vembanad Lake margins and deploy SDRF rescue assets.`
@@ -41,16 +41,16 @@ const LOCATIONS = {
     lat: 30.7346,
     lon: 79.0669,
     stats: { floodArea: "4.2 km²", waterDepth: "0.45 m", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
-    metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", conf: "88.7%", reliability: "0.8870" },
+    metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", iou: "0.812", boundaryAcc: "84.8%", conf: "88.7%", reliability: "0.8870" },
     rankings: [
       { id: "RS2_L4_2025", date: "2025-03-01", cloud: "0.5%", rank: 1, sensor: "Resourcesat-2" },
       { id: "RS2A_L4_2024", date: "2024-04-10", cloud: "1.8%", rank: 2, sensor: "Resourcesat-2A" },
       { id: "CARTOSAT_2023", date: "2023-11-22", cloud: "3.1%", rank: 3, sensor: "Cartosat-1" }
     ],
-    report: `## DISASTER ASSESSMENT: BLAZING LANDSLIDE DEBRIS
+    report: `## DISASTER ASSESSMENT: UTTARAKHAND LANDSLIDE
 - **Reconstruction Confidence:** 88.7%
 - **Inundated Area:** 4.2 sq km
-- **Avg Debris Depth:** 0.45 meters
+- **Est Mud Depth:** 0.45 meters (Model-Based)
 - **NH-107 Road Blockage:** 3.8 km slope debris.
 
 > **HAZARD ALERT:** Landslide dam blocking river channel. Evacuate downstream gorges.`
@@ -60,7 +60,7 @@ const LOCATIONS = {
     lat: 13.0827,
     lon: 80.2707,
     stats: { floodArea: "56.1 km²", waterDepth: "2.10 m", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
-    metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", conf: "94.1%", reliability: "0.9410" },
+    metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", iou: "0.924", boundaryAcc: "93.6%", conf: "94.1%", reliability: "0.9410" },
     rankings: [
       { id: "RS2A_L4_2025", date: "2025-05-18", cloud: "0.1%", rank: 1, sensor: "Resourcesat-2A" },
       { id: "RS2_L4_2024", date: "2024-06-02", cloud: "2.4%", rank: 2, sensor: "Resourcesat-2" },
@@ -69,7 +69,7 @@ const LOCATIONS = {
     report: `## DISASTER ASSESSMENT: CHENNAI CYCLONE FLOODING
 - **Reconstruction Confidence:** 94.1%
 - **Inundated Area:** 56.1 sq km
-- **Avg Inundation Depth:** 2.10 meters
+- **Est Flood Depth:** 2.10 meters (Model-Based)
 - **Road Blockage:** 28.6 km city roads submerged.
 
 > **SAFETY WARNING:** Industrial runoff detected in flood waters. Distribute clean drinking water.`
@@ -91,7 +91,7 @@ export default function GISDashboard() {
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [report, setReport] = useState('');
   const [stats, setStats] = useState({ floodArea: '--', waterDepth: '--', roadDamage: '--', priorityScore: '--', severity: 'READY' });
-  const [valMetrics, setValMetrics] = useState({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', conf: '--', reliability: '--', qaCheck: 'READY' });
+  const [valMetrics, setValMetrics] = useState({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', iou: '--', boundaryAcc: '--', qaCheck: 'READY' });
   
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const logEndRef = useRef<HTMLDivElement | null>(null);
@@ -277,7 +277,6 @@ export default function GISDashboard() {
         ctx.beginPath(); ctx.arc(250, 200, 120, 0, Math.PI * 2); ctx.fill();
       }
 
-      // XAI Layer: Attention Map
       if (layerType === 'attention') {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.fillRect(0, 0, W, H);
@@ -294,7 +293,6 @@ export default function GISDashboard() {
         ctx.stroke();
       }
 
-      // XAI Layer: Uncertainty Map
       if (layerType === 'uncertainty') {
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
@@ -378,18 +376,20 @@ export default function GISDashboard() {
     setLogs([]);
     
     const steps = [
-      { t: 'Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...', p: 8 },
-      { t: 'Orchestrator: Ranking reference imagery (Cloud percentage, Season, Solar Elevation)...', p: 15 },
-      { t: `Orchestrator: Best Reference Selection: Ranked ${loc.rankings[0].id} as baseline reference...`, p: 22 },
-      { t: 'Orchestrator: Download Manager pulling current Sentinel-1 SAR orbit files and optical bands...', p: 30 },
-      { t: 'Orchestrator: Verifying metadata variables, band compatibility, and coordinate bounds...', p: 38 },
+      { t: 'Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...', p: 5 },
+      { t: 'Orchestrator: Ranking reference imagery (Cloud percentage, season similarity, temporal distance)...', p: 12 },
+      { t: 'Orchestrator: Checking local Spatial DB Raster Cache... Cache Miss.', p: 20 },
+      { t: 'Orchestrator: Activating Download Manager to pull current SAR orbit files and optical bands...', p: 28 },
+      { t: 'Orchestrator: Verifying metadata parameters and projection grids...', p: 34 },
+      { t: 'Orchestrator: Running Image Quality Assessment (IQA)... Cloud % (78%), Striping (none) -> Scene ACCEPTED.', p: 40 },
       { t: 'Orchestrator: SAR Preprocessing (Orbit Correction -> Calibration -> Terrain Correction -> Lee Speckle Filter)...', p: 48 },
-      { t: 'Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching)...', p: 58 },
-      { t: 'Orchestrator: Swapping registry models (CloudNet_v1.2 and TemporalDiffusion_v3.4 loaded)...', p: 68 },
-      { t: 'Orchestrator: Running Temporal Fusion Transformer & Denoising Diffusion Reconstruction...', p: 82 },
-      { t: 'Orchestrator: Synthesizing Explainability Layer (generating Attention maps and Uncertainty maps)...', p: 90 },
-      { t: 'Orchestrator: Executing multi-category QA Validation split (Reconstruction, Spectral, Uncertainty)...', p: 96 },
-      { t: 'Orchestrator: Disaster assessment complete. Generating intelligence reports...', p: 100 }
+      { t: 'Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching -> Seasonal Normalization)...', p: 58 },
+      { t: 'Orchestrator: Initializing Model Registry checkpoint v2.4.1 (Performance monitoring active)...', p: 68 },
+      { t: 'Orchestrator: Executing Co-Registration & Physics-Guided Multi-Modal SAR-Optical Fusion Engine...', p: 78 },
+      { t: 'Orchestrator: Generating Explainability Layer (Feature Importance, Pixel Attribution, and Confidence heatmaps)...', p: 88 },
+      { t: 'Orchestrator: Compiling split Quality Assurance Validation (Image Quality, Spectral Integrity, Geometric Consistency)...', p: 94 },
+      { t: 'Orchestrator: Booting Emergency Decision Support Engine (Estimated flood depth, population exposure, road accessibility)...', p: 98 },
+      { t: 'Orchestrator: Pipeline execution completed successfully.', p: 100 }
     ];
 
     steps.forEach((step, idx) => {
@@ -400,7 +400,7 @@ export default function GISDashboard() {
         if (idx === steps.length - 1) {
           completePipeline();
         }
-      }, (idx + 1) * 650);
+      }, (idx + 1) * 600);
     });
   };
 
@@ -424,8 +424,8 @@ export default function GISDashboard() {
       rmse: loc.metrics.rmse,
       sam: loc.metrics.sam,
       ndviDelta: loc.metrics.ndviDelta,
-      conf: loc.metrics.conf,
-      reliability: loc.metrics.reliability,
+      iou: loc.metrics.iou,
+      boundaryAcc: loc.metrics.boundaryAcc,
       qaCheck: 'PASSED'
     });
 
@@ -501,7 +501,7 @@ export default function GISDashboard() {
                     onChange={(e) => {
                       setLocationKey(e.target.value as LocationKey);
                       setStats({ floodArea: '--', waterDepth: '--', roadDamage: '--', priorityScore: '--', severity: 'READY' });
-                      setValMetrics({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', conf: '--', reliability: '--', qaCheck: 'READY' });
+                      setValMetrics({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', iou: '--', boundaryAcc: '--', qaCheck: 'READY' });
                       setReport('');
                       setActiveLayers(['cloudy']);
                       addLog(`Switched target scene to: ${e.target.value}`);
@@ -560,8 +560,9 @@ export default function GISDashboard() {
                   <span>Co-Registration GNN:</span>
                   <span className="text-cyanGlow font-bold">LoFTR_ResNet_v2.0</span>
                 </div>
-                <div className="border-t border-border/30 pt-1.5 mt-1.5 text-[9px] text-slate-500">
-                  <i className="fa-solid fa-database mr-1"></i> ModelRegistry: active, weights online
+                <div className="border-t border-border/30 pt-1.5 mt-1.5 text-[9px] text-slate-500 flex flex-col gap-0.5">
+                  <div className="font-semibold text-[#38bdf8]"><i class="fa-solid fa-server mr-1"></i> Registry: active (v2.4.1 checkpoint)</div>
+                  <div>Inference Monitoring: NOMINAL</div>
                 </div>
               </div>
             </div>
@@ -613,7 +614,7 @@ export default function GISDashboard() {
               <h4 className="font-bold text-slate-300 border-b border-border pb-1 mb-1.5 flex items-center gap-1"><Layers className="w-3 h-3" /> GIS MAP LEGENDS</h4>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span class="text-slate-400 w-16">Confidence:</span>
+                  <span className="text-slate-400 w-16">Confidence:</span>
                   <div className="w-20 h-2 bg-gradient-to-r from-red-600 via-yellow-500 to-green-600 rounded"></div>
                   <span className="text-slate-300">0-100%</span>
                 </div>
@@ -749,7 +750,7 @@ export default function GISDashboard() {
               <span className="text-sm font-bold text-cyanGlow mt-0.5">{stats.floodArea}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
-              <span className="block text-slate-400 text-[8px] uppercase">Avg Water Depth</span>
+              <span className="block text-slate-400 text-[8px] uppercase">Est Flood Depth (Model)</span>
               <span className="text-sm font-bold text-cyanGlow mt-0.5">{stats.waterDepth}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
@@ -757,7 +758,7 @@ export default function GISDashboard() {
               <span className="text-sm font-bold text-red-400 mt-0.5">{stats.roadDamage}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
-              <span className="block text-slate-400 text-[8px] uppercase">Priority Rescue Index</span>
+              <span className="block text-slate-400 text-[8px] uppercase">Emergency Priority Index</span>
               <span className="text-sm font-bold text-orangeGlow mt-0.5">{stats.priorityScore}</span>
             </div>
           </div>
@@ -765,7 +766,7 @@ export default function GISDashboard() {
           {/* Scientific Validation Metrics */}
           <div className="p-3 border-b border-border bg-[#070b13]/90 space-y-2">
             <div className="text-[10px] font-bold text-cyanGlow tracking-wider border-b border-border pb-1 flex justify-between items-center">
-              <span className="flex items-center gap-1.5"><BarChart4 className="w-3.5 h-3.5 text-cyanGlow" /> QA VALIDATION SPLIT</span>
+              <span className="flex items-center gap-1.5"><BarChart4 className="w-3.5 h-3.5 text-cyanGlow" /> QA VALIDATION REPORT</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold border ${
                 valMetrics.qaCheck === 'PASSED' ? 'bg-emerald-950/20 text-emerald-400 border-emerald-500/40' : 'bg-slate-900 text-slate-400 border-slate-700'
               }`}>
@@ -775,7 +776,7 @@ export default function GISDashboard() {
             
             {/* Reconstruction */}
             <div className="space-y-0.5">
-              <span className="block text-[8px] text-orangeGlow uppercase font-bold">I. Reconstruction Verification</span>
+              <span className="block text-[8px] text-orangeGlow uppercase font-bold">I. Image Quality (Structural Accuracy)</span>
               <div className="grid grid-cols-3 gap-1 text-[8px] text-slate-300 font-mono text-center">
                 <div className="bg-background border border-border/50 py-0.5 rounded">
                   <span className="block text-[7px] text-slate-500">PSNR (dB)</span>
@@ -792,10 +793,10 @@ export default function GISDashboard() {
               </div>
             </div>
 
-            {/* Spectral & Uncertainty */}
+            {/* Spectral & Geometric */}
             <div className="grid grid-cols-2 gap-2 text-[8px] font-mono text-slate-300 pt-1">
               <div>
-                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">II. Spectral</span>
+                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">II. Spectral Integrity</span>
                 <div className="flex justify-between border-b border-border/30 pb-0.5">
                   <span className="text-slate-500">SAM (rad):</span>
                   <span className="font-bold text-cyanGlow">{valMetrics.sam}</span>
@@ -806,14 +807,14 @@ export default function GISDashboard() {
                 </div>
               </div>
               <div>
-                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">III. Uncertainty</span>
+                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">III. Geometric Consistency</span>
                 <div className="flex justify-between border-b border-border/30 pb-0.5">
-                  <span className="text-slate-500">Confidence:</span>
-                  <span className="font-bold text-cyanGlow">{valMetrics.conf}</span>
+                  <span className="text-slate-500">IoU Score:</span>
+                  <span className="font-bold text-cyanGlow">{valMetrics.iou}</span>
                 </div>
                 <div className="flex justify-between border-b border-border/30 pb-0.5">
-                  <span className="text-slate-500">Reliability:</span>
-                  <span className="font-bold text-emerald-400">{valMetrics.reliability}</span>
+                  <span className="text-slate-500">Boundary Acc:</span>
+                  <span className="font-bold text-emerald-400">{valMetrics.boundaryAcc}</span>
                 </div>
               </div>
             </div>
@@ -826,7 +827,7 @@ export default function GISDashboard() {
               <span className="text-[8px] text-slate-500">GEMINI 1.5 PRO API</span>
             </div>
             
-            <div className="flex-1 bg-[#070b13] border border-border rounded p-3 text-[11px] text-slate-300 overflow-y-auto leading-relaxed max-h-[190px] font-sans">
+            <div className="flex-1 bg-[#070b13] border border-border rounded p-3 text-[11px] text-slate-300 overflow-y-auto leading-relaxed max-h-[150px] font-sans">
               {report ? (
                 <div className="space-y-2">
                   <div className="text-xs font-bold text-cyanGlow uppercase font-mono border-b border-border pb-1 flex items-center gap-1">
@@ -843,7 +844,7 @@ export default function GISDashboard() {
             </div>
 
             {/* Export buttons */}
-            <div className="mt-3 space-y-2 font-mono">
+            <div className="mt-4 space-y-2 font-mono">
               <div className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">System Export Handlers</div>
               <div className="grid grid-cols-2 gap-2">
                 <button 

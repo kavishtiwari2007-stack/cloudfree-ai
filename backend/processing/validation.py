@@ -47,13 +47,36 @@ def calculate_spectral_angle_mapper(img1: np.ndarray, img2: np.ndarray) -> float
     cosine_theta = np.clip(dot_product / denominator, -1.0, 1.0)
     return float(np.mean(np.arccos(cosine_theta)))
 
+def calculate_iou(mask1: np.ndarray, mask2: np.ndarray) -> float:
+    """Calculates Intersection over Union (IoU) for binary arrays"""
+    intersection = np.logical_and(mask1, mask2)
+    union = np.logical_or(mask1, mask2)
+    union_sum = np.sum(union)
+    if union_sum == 0:
+        return 1.0
+    return float(np.sum(intersection) / union_sum)
+
+def calculate_boundary_accuracy(img1: np.ndarray, img2: np.ndarray) -> float:
+    """Computes alignment of structural edge boundary maps using simple Sobel gradients"""
+    # Simple spatial difference to extract edges
+    diff1_x = np.abs(img1[:, :-1, :-1] - img1[:, :-1, 1:])
+    diff2_x = np.abs(img2[:, :-1, :-1] - img2[:, :-1, 1:])
+    
+    # Threshold gradients to create boundary maps
+    edge1 = diff1_x > 0.1
+    edge2 = diff2_x > 0.1
+    
+    # Calculate IoU of structural boundaries
+    return calculate_iou(edge1, edge2)
+
 
 class ScientificValidator:
     """
-    Scientific validation service structured into distinct modules:
-    1. Reconstruction Validation (PSNR, SSIM, RMSE)
-    2. Spectral Validation (NDVI delta, SAM)
-    3. Uncertainty Validation (Confidence metrics, pixel standard deviation)
+    Scientific Quality Assurance (QA) Validation Service.
+    Divided into three operational checks:
+    1. Image Quality (PSNR, SSIM, RMSE)
+    2. Spectral Integrity (SAM, NDVI Delta)
+    3. Geometric Consistency (IoU, Boundary Accuracy)
     """
     def __init__(self, max_value: float = 1.0):
         self.max_val = max_value
@@ -61,39 +84,37 @@ class ScientificValidator:
     def validate_scene(self, reference_bands: np.ndarray, reconstructed_bands: np.ndarray) -> dict:
         assert reference_bands.shape == reconstructed_bands.shape, "Arrays must have matching shapes."
         
-        # 1. Reconstruction Validation
+        # 1. Image Quality
         mse = calculate_mse(reference_bands, reconstructed_bands)
         rmse = calculate_rmse(reference_bands, reconstructed_bands)
         psnr = calculate_psnr(reference_bands, reconstructed_bands, self.max_val)
         ssim = calculate_ssim(reference_bands, reconstructed_bands, self.max_val)
         
-        # 2. Spectral Validation
+        # 2. Spectral Integrity
         sam = calculate_spectral_angle_mapper(reference_bands, reconstructed_bands)
-        
-        # Simulated NDVI band calculations (B4 is NIR - index 3, B3 is Red - index 2)
-        # NDVI = (NIR - Red) / (NIR + Red)
         ref_ndvi = (reference_bands[3] - reference_bands[2]) / (reference_bands[3] + reference_bands[2] + 1e-5)
         recon_ndvi = (reconstructed_bands[3] - reconstructed_bands[2]) / (reconstructed_bands[3] + reconstructed_bands[2] + 1e-5)
         mean_ndvi_delta = float(np.mean(np.abs(ref_ndvi - recon_ndvi)))
         
-        # 3. Uncertainty Validation
-        # Confidence score mapping based on reconstruction deviation
-        pixel_deviation = np.abs(reference_bands - reconstructed_bands)
-        mean_pixel_reliability = float(1.0 - np.mean(pixel_deviation))
-        mean_confidence_score = float(np.clip(mean_pixel_reliability * 100, 0, 100))
+        # 3. Geometric Consistency
+        # Create mock binary segmentations via thresholding
+        ref_mask = reference_bands[0] > 0.4
+        recon_mask = reconstructed_bands[0] > 0.4
+        iou = calculate_iou(ref_mask, recon_mask)
+        boundary_acc = calculate_boundary_accuracy(reference_bands, reconstructed_bands)
 
         return {
-            "reconstruction_validation": {
+            "image_quality": {
                 "peak_signal_noise_ratio_db": psnr,
                 "structural_similarity_index": ssim,
                 "root_mean_squared_error": rmse
             },
-            "spectral_validation": {
+            "spectral_integrity": {
                 "spectral_angle_mapper_rad": sam,
                 "mean_ndvi_delta": mean_ndvi_delta
             },
-            "uncertainty_validation": {
-                "mean_confidence_score": mean_confidence_score,
-                "pixel_reliability_index": mean_pixel_reliability
+            "geometric_consistency": {
+                "intersection_over_union": iou,
+                "boundary_accuracy_index": boundary_acc
             }
         }
