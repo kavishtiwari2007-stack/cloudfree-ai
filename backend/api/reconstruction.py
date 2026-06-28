@@ -59,8 +59,9 @@ class ModelRegistry:
 class WorkflowOrchestrator:
     """
     Workflow Orchestrator.
-    Manages operational chains including Raster Cache check, Image Quality Assessment,
-    model loading from MLOps Registry, and execution of multi-modal fusion.
+    Manages operational chains including Object Storage & Metadata DB queries, 
+    Multi-Criteria Ranking, Data Quality Filters (IQA), Preprocessing, and 
+    Physics-Guided Multi-Temporal Reconstruction.
     """
     def __init__(self):
         self.registry = ModelRegistry()
@@ -68,66 +69,66 @@ class WorkflowOrchestrator:
     def run_pipeline(self, task_id: str, req: ReconstructionRequestSchema):
         # 1. Dataset Discovery Engine (5%)
         mock_task_store[task_id]["progress_percentage"] = 5
-        mock_task_store[task_id]["message"] = "Orchestrator: Querying Dataset Discovery Engine (Acquisition season, Solar elevation, Cloud %)..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Querying Dataset Discovery Engine (Catalog Search -> Metadata DB query)..."
         time.sleep(0.5)
 
-        # 2. Reference Scene Selection & Download Manager (12%)
+        # 2. Multi-Criteria Ranking & Selection (12%)
         mock_task_store[task_id]["progress_percentage"] = 12
-        mock_task_store[task_id]["message"] = "Orchestrator: Ranking historical baseline reference scenes. Activating Download Manager..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Applying Multi-Criteria Ranking (Cloud %, season similarity, temporal distance, viewing geometry)... Reference scene selected."
         time.sleep(0.5)
 
-        # 3. Spatial DB Raster Cache Check (20%)
+        # 3. Object Storage & Raster Cache check (20%)
         mock_task_store[task_id]["progress_percentage"] = 20
-        mock_task_store[task_id]["message"] = "Orchestrator: Checking local Spatial DB Raster Cache... Cache Miss. Fetching scenes from Bhoonidhi..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Querying Object Storage (MinIO/S3) & local Raster Cache... Cache Miss. Launching Download Manager..."
         time.sleep(0.6)
 
         # 4. Metadata Validation (30%)
         mock_task_store[task_id]["progress_percentage"] = 30
-        mock_task_store[task_id]["message"] = "Orchestrator: Verifying metadata parameters, band mappings, and map projections..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Checking metadata consistency, spatial coordinates, and coordinate reference system (CRS)..."
         time.sleep(0.5)
 
         # 5. Data Quality Filter / Image Quality Assessment (IQA) (38%)
         mock_task_store[task_id]["progress_percentage"] = 38
-        mock_task_store[task_id]["message"] = "Orchestrator: Executing Data Quality Filter (checking Cloud %, Missing Bands, Striping, Radiometric errors)... Scene status: ACCEPTED."
-        time.sleep(0.7)
+        mock_task_store[task_id]["message"] = "Orchestrator: Running Image Quality Assessment (IQA) -> Cloud % (78%), Striping (none), Radiometry (none) -> Scene ACCEPTED."
+        time.sleep(0.6)
 
         # 6. SAR Preprocessing (48%)
         mock_task_store[task_id]["progress_percentage"] = 48
-        mock_task_store[task_id]["message"] = "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter -> Normalization)..."
+        mock_task_store[task_id]["message"] = "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter)..."
         time.sleep(0.8)
 
         # 7. Optical Preprocessing (58%)
         mock_task_store[task_id]["progress_percentage"] = 58
-        mock_task_store[task_id]["message"] = "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric correction -> Band Normalization -> Histogram Matching -> Seasonal Normalization)..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric correction -> Band Normalization -> Histogram Matching)..."
         time.sleep(0.8)
 
-        # 8. MLOps Layer & Model Checkpoint Load (68%)
+        # 8. MLOps Layer Checkpoint Load (68%)
         mlops = self.registry.load_inference_service()
         mock_task_store[task_id]["progress_percentage"] = 68
-        mock_task_store[task_id]["message"] = f"Orchestrator: MLOps Inference Service initialized. Loaded model registry checkpoint version: {mlops['version']} (Performance monitoring online)..."
-        time.sleep(0.6)
+        mock_task_store[task_id]["message"] = f"Orchestrator: Loaded Model Registry version: {mlops['version']} (Performance monitoring online)..."
+        time.sleep(0.5)
 
-        # 9. Co-Registration & Fusion Pipeline (78%)
+        # 9. Co-Registration & Reconstruction (78%)
         mock_task_store[task_id]["progress_percentage"] = 78
-        mock_task_store[task_id]["message"] = "Orchestrator: Running Co-Registration & Physics-Guided Multi-Modal SAR-Optical Fusion Engine..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Executing Physics-Guided Multi-Temporal SAR-Optical Reconstruction Engine..."
         time.sleep(0.9)
 
-        # 10. Explainability Layer (88%)
+        # 10. Split QA Validation & Flood Segmentation (88%)
         mock_task_store[task_id]["progress_percentage"] = 88
-        mock_task_store[task_id]["message"] = "Orchestrator: Compiling Explainability Layers (synthesizing Feature Importance, Pixel Attribution, and Confidence heatmaps)..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Running independent validation branches (QA metrics) and flood segmentation modules in parallel..."
         time.sleep(0.7)
 
-        # 11. Scientific QA Validation Split (94%)
+        # 11. Explainability Layer & Exposure Analysis (94%)
         mock_task_store[task_id]["progress_percentage"] = 94
-        mock_task_store[task_id]["message"] = "Orchestrator: Calculating split QA validation arrays (Image Quality, Spectral Integrity, Geometric Consistency)..."
+        mock_task_store[task_id]["message"] = "Orchestrator: Generating Explainability Layers (Attention maps, uncertainty maps) & Population Exposure (OSM+Census)..."
         time.sleep(0.6)
 
-        # 12. Disaster Assessment & Emergency Decision Support (98%)
+        # 12. Report Generation (98%)
         mock_task_store[task_id]["progress_percentage"] = 98
-        mock_task_store[task_id]["message"] = "Orchestrator: Running Emergency Decision Support Engine (calculating flood depth, population exposure, and priority indices)..."
-        time.sleep(0.6)
+        mock_task_store[task_id]["message"] = "Orchestrator: Summarizing spatial metrics for LLM Report Generator..."
+        time.sleep(0.5)
 
-        # Scientific calculations
+        # Scientific validation arrays
         ref_mock = np.random.rand(4, 64, 64)
         recon_mock = ref_mock + np.random.normal(0, 0.04, (4, 64, 64))
         recon_mock = np.clip(recon_mock, 0.0, 1.0)
@@ -135,10 +136,10 @@ class WorkflowOrchestrator:
         validator = ScientificValidator(max_value=1.0)
         metrics = validator.validate_scene(ref_mock, recon_mock)
 
-        # Complete
+        # Task Complete
         mock_task_store[task_id]["status"] = "COMPLETED"
         mock_task_store[task_id]["progress_percentage"] = 100
-        mock_task_store[task_id]["message"] = "Orchestrator: Spatial geoprocessing task finalized successfully."
+        mock_task_store[task_id]["message"] = "Orchestrator: Reconstruction and analysis completed nominal."
         mock_task_store[task_id]["completed_at"] = datetime.utcnow()
 
         mock_task_store[task_id]["results"] = {
@@ -185,7 +186,7 @@ async def trigger_reconstruction(request: ReconstructionRequestSchema, backgroun
         "task_id": task_id,
         "status": "PENDING",
         "progress_percentage": 0,
-        "message": "Orchestrator: Instantiating workflow tasks...",
+        "message": "Orchestrator: Triggering Workflow Orchestrator tasks...",
         "created_at": datetime.utcnow(),
         "completed_at": None,
         "results": None

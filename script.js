@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lon: 76.2673,
             zoom: 13,
             bounds: [[9.90, 76.23], [9.96, 76.30]],
-            stats: { floodArea: "42.8 km²", waterDepth: "1.24 m", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
+            stats: { floodArea: "42.8 km²", waterDepth: "Critical (8.5)", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
             metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", iou: "0.895", boundaryAcc: "91.2%", conf: "92.4%", reliability: "0.9240" },
             rankings: [
                 { id: "RS2_L4_2024", date: "2024-02-12", cloud: "0.2%", rank: 1, sensor: "Resourcesat-2" },
@@ -47,7 +47,7 @@ A heavy precipitation event triggered by active monsoon currents has resulted in
             lon: 79.0669,
             zoom: 14,
             bounds: [[30.71, 79.04], [30.76, 79.09]],
-            stats: { floodArea: "4.2 km²", waterDepth: "0.45 m", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
+            stats: { floodArea: "4.2 km²", waterDepth: "High (6.2)", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
             metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", iou: "0.812", boundaryAcc: "84.8%", conf: "88.7%", reliability: "0.8870" },
             rankings: [
                 { id: "RS2_L4_2025", date: "2025-03-01", cloud: "0.5%", rank: 1, sensor: "Resourcesat-2" },
@@ -82,7 +82,7 @@ A localized cloudburst triggered a major debris flow landslide blocking the Mand
             lon: 80.2707,
             zoom: 13,
             bounds: [[13.05, 80.23], [13.11, 80.30]],
-            stats: { floodArea: "56.1 km²", waterDepth: "2.10 m", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
+            stats: { floodArea: "56.1 km²", waterDepth: "Extreme (9.2)", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
             metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", iou: "0.924", boundaryAcc: "93.6%", conf: "94.1%", reliability: "0.9410" },
             rankings: [
                 { id: "RS2A_L4_2025", date: "2025-05-18", cloud: "0.1%", rank: 1, sensor: "Resourcesat-2A" },
@@ -367,7 +367,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
                 ctx.fillStyle = "#ea580c";
                 ctx.beginPath(); ctx.moveTo(140, 200); ctx.lineTo(260, 240); ctx.lineTo(250, 280); ctx.lineTo(130, 230); ctx.closePath(); ctx.fill();
             } else if (isChennai) {
-                ctx.beginPath(); ctx.lineWidth = 10; ctx.strokeStyle = "#dc2626"; ctx.moveTo(0, 300); ctx.bezierCurveTo(200, 310, 350, 290, 512, 280); ctx.stroke();
+                ctx.beginPath(); ctx.lineWidth = 10; ctx.strokeStyle = "#dc2626"; ctx.moveTo(0, 300); ctx.bezierCurveTo(200, 310, 350, 290, 512, 280); stroke();
                 ctx.fillStyle = "#dc2626";
                 ctx.beginPath(); ctx.moveTo(420, 0); ctx.lineTo(512, 0); ctx.lineTo(512, 512); ctx.lineTo(480, 512); ctx.bezierCurveTo(460, 300, 430, 150, 420, 0); ctx.fill();
                 ctx.beginPath(); ctx.rect(80, 80, 110, 80); ctx.arc(200, 300, 60, 0, Math.PI * 2); ctx.fill();
@@ -681,19 +681,19 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         const selectedRefId = activeLoc.rankings[0].id;
 
         const steps = [
-            { text: "Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...", time: 400, prog: 5 },
-            { text: "Orchestrator: Ranking reference imagery (Cloud percentage, season similarity, temporal distance)...", time: 900, prog: 12 },
-            { text: "Orchestrator: Checking local Spatial DB Raster Cache... Cache Miss.", time: 1300, prog: 20 },
-            { text: "Orchestrator: Activating Download Manager to pull current SAR orbit files and optical bands...", time: 1800, prog: 28 },
-            { text: "Orchestrator: Verifying metadata variables, map projection grids, and band constraints...", time: 2200, prog: 34 },
-            { text: "Orchestrator: Running Image Quality Assessment (IQA) -> Cloud % (78%), Striping (none), Radiometry (none) -> Scene ACCEPTED.", time: 2700, prog: 40 },
-            { text: "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter)...", time: 3300, prog: 48 },
-            { text: "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching -> Seasonal Normalization)...", time: 3900, prog: 58 },
-            { text: "Orchestrator: Initializing Model Registry checkpoint v2.4.1 (Performance monitoring active)...", time: 4400, prog: 68 },
-            { text: "Orchestrator: Executing Co-Registration & Physics-Guided Multi-Modal SAR-Optical Fusion Engine...", time: 4900, prog: 78 },
-            { text: "Orchestrator: Generating Explainability Layer (Feature Importance, Pixel Attribution, and Confidence heatmaps)...", time: 5400, prog: 88 },
-            { text: "Orchestrator: Compiling split Quality Assurance Validation (Image Quality, Spectral Integrity, Geometric Consistency)...", time: 5900, prog: 94 },
-            { text: "Orchestrator: Booting Emergency Decision Support Engine (Estimated flood depth, population exposure, road accessibility)...", time: 6400, prog: 98 },
+            { text: "Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata DB query)...", time: 400, prog: 5 },
+            { text: "Orchestrator: Applying Multi-Criteria Ranking (Cloud %, season similarity, temporal distance, viewing geometry)... Reference scene selected.", time: 900, prog: 12 },
+            { text: "Orchestrator: Querying Object Storage (MinIO/S3) & local Raster Cache... Cache Miss. Launching Download Manager...", time: 1300, prog: 20 },
+            { text: "Orchestrator: Checking metadata consistency, spatial coordinates, and CRS...", time: 1800, prog: 28 },
+            { text: "Orchestrator: Running Image Quality Assessment (IQA) -> Cloud % (78%), Striping (none), Radiometry (none) -> Scene ACCEPTED.", time: 2300, prog: 34 },
+            { text: "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter)...", time: 2800, prog: 40 },
+            { text: "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching)...", time: 3300, prog: 48 },
+            { text: "Orchestrator: Loaded Model Registry version: v2.4.1 (Performance monitoring active)...", time: 3800, prog: 58 },
+            { text: "Orchestrator: Executing Physics-Guided Multi-Temporal SAR-Optical Reconstruction Engine...", time: 4300, prog: 68 },
+            { text: "Orchestrator: Running independent validation branches (QA metrics) and flood segmentation modules in parallel...", time: 4900, prog: 78 },
+            { text: "Orchestrator: Generating Explainability Layers (Attention maps, uncertainty maps) & Population Exposure (OSM+Census)...", time: 5400, prog: 88 },
+            { text: "Orchestrator: Summarizing spatial metrics for LLM Report Generator...", time: 5900, prog: 94 },
+            { text: "Orchestrator: Compiling split Quality Assurance Validation (Image Quality, Spectral Integrity, Geometric Consistency)...", time: 6400, prog: 98 },
             { text: "Orchestrator: Pipeline execution completed successfully. Output files updated.", time: 6900, prog: 100 }
         ];
 

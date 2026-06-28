@@ -1,18 +1,36 @@
-# CloudFreeAI: AI-Powered Multi-Temporal Satellite Reconstruction & Disaster Intelligence
+# CloudFreeAI: Physics-Guided Multi-Temporal SAR–Optical Reconstruction & Disaster Intelligence Platform
 
-CloudFreeAI is a research-grade remote sensing and disaster intelligence platform designed for the **Bharatiya Antariksh Hackathon (BAH) 2026**. It reconstructs cloud-covered, high-resolution optical satellite imagery (Resourcesat-2/2A LISS-IV) by constraining reconstructions with current Sentinel-1 Synthetic Aperture Radar (SAR) observations and historical cloud-free baselines, preserving physical and scientific accuracy.
+CloudFreeAI is a research-grade remote sensing and disaster intelligence platform developed for the **Bharatiya Antariksh Hackathon (BAH) 2026**. It reconstructs cloud-covered, high-resolution optical satellite imagery (Resourcesat-2/2A LISS-IV) using current Sentinel-1 Synthetic Aperture Radar (SAR) observations and historical cloud-free baselines, preserving physical and scientific accuracy.
 
 ---
 
-## 🛰️ Operational System Architecture
+## 🛰️ Three-Level System Architecture
+
+### 📊 Level 1: High-Level Pipeline
+A simplified representation of the end-to-end data flow:
+
+```mermaid
+graph LR
+    User([User GIS Client]) -->|1. Select AOI| Retrieval[Dataset Discovery & Retrieval]
+    Retrieval -->|2. Dual Modality Bands| Prep[Geoprocessing Preprocessing]
+    Prep -->|3. Standardized Arrays| Recon[Physics-Guided AI Reconstruction]
+    Recon -->|4. Cloud-Free Optical| Flood[Flood Segmentation & Disaster Analysis]
+    Flood -->|5. Damage Statistics| Report[LLM Report Summarization]
+    Report -->|6. Official Briefs| User
+```
+
+---
+
+### 🔍 Level 2: Detailed Architectural Data Flow
+The complete scientific geoprocessing, MLOps, and validation architecture:
 
 ```mermaid
 graph TD
-    User([User GIS Client]) -->|1. Request Area of Interest| API[FastAPI Gateway]
-    API -->|2. Delegate to Task Broker| Orch[Central Workflow Orchestrator]
+    User([User GIS Client]) -->|1. Select Area of Interest| API[FastAPI Gateway]
+    API -->|2. Task Request| Orch[Central Workflow Orchestrator]
     
     subgraph MLOps [MLOps & Model Registry Layer]
-        MR[Model Registry DB] -->|Model Checkpoints| Version[Model Versioning v2.4.1]
+        MR[Model Registry DB] -->|Checkpoints| Version[Model Versioning v2.4.1]
         Version -->|Deploy Weights| Service[Inference Service Engine]
         Service -->|Real-time Performance| Monitor[Performance Monitoring & Logging]
         Monitor -->|Telemetric State| Orch
@@ -21,20 +39,21 @@ graph TD
     %% Ingestion & Discovery
     Orch -->|3. Query Metadata| Disc[Dataset Discovery Engine]
     
-    subgraph Discovery [Data Discovery & Ingestion]
+    subgraph Discovery [Dataset Discovery & Ingestion]
         Disc -->|Metadata Search| MetaQuery[Bhoonidhi Catalog Search]
         MetaQuery -->|Filter Cloud Cover| CloudFilt[Cloud Coverage Filter]
-        CloudFilt -->|Acquisition Season / Solar angle| TempRank[Temporal Rank Engine]
+        CloudFilt -->|Acquisition Season / Solar angle| TempRank[Multi-Criteria Ranking Engine]
         TempRank -->|Reference Selection| RefSel[Reference Scene Selection]
-        RefSel -->|Enqueue Download| DL[Download Manager]
+        RefSel -->|Verify Cache| ObjectStorage[Object Storage: S3/MinIO]
+        ObjectStorage -->|Local Lookup| RasterCache[Local Raster Cache]
+        RasterCache -->|Attributes| MetaDB[(Metadata Database: PostGIS)]
+        MetaDB -->|Download Misses| DL[Download Manager]
     end
 
-    %% Spatial DB Caching
-    DL -->|Raw Orbit & Raster files| Cache[Spatial DB Raster Cache]
-    Cache -->|Validate Bounds| MetaVal[Metadata Validation: Bands & Projections]
+    DL & RasterCache -->|Verify footprint| MetaVal[Metadata Validation: Bands & Projections]
 
     %% Data Quality Filter / Image Quality Assessment
-    MetaVal -->|Radiometric DN check| IQA[Image Quality Assessment: cloud %, missing bands, striping, sensor errors]
+    MetaVal -->|Radiometric DN check| IQA[Image Quality Assessment: Cloud %, Missing Bands, Striping, Radiometric Errors]
     IQA -->|Filter evaluation| AcceptReject{Accept / Reject Scene}
     
     subgraph Preprocessing [Scientific Preprocessing Module]
@@ -52,7 +71,7 @@ graph TD
         Opt_4 --> Opt_5[Seasonal Normalization]
     end
     
-    subgraph AI [Physics-Guided Multi-Modal SAR-Optical Fusion Engine]
+    subgraph AI [Physics-Guided Multi-Temporal SAR-Optical Reconstruction Engine]
         Opt_5 -->|Historical Baseline| OptEnc[Historical Optical Encoder]
         S1_6 -->|Current SAR Guidance Constraints| SAREnc[Current SAR Encoder]
         
@@ -62,39 +81,41 @@ graph TD
         DiffNet --> SpecCons[Spectral Consistency & Quality QC]
     end
 
-    subgraph Explain [Explainable AI Layer]
-        SpecCons --> AttnM[Attention Weights Synthesis]
-        SpecCons --> UncertM[Pixel Uncertainty Estimation]
-        SpecCons --> FeatImp[Feature Importance & Pixel Attribution]
-    end
-
+    %% Decoupled Splits (Reconstructed Image feeds QA and Flood independently)
+    SpecCons -->|Reconstructed Image| SplitNode{Decoupled Splits}
+    
     subgraph QA [Quality Assurance Validation Split]
+        SplitNode -->|Independent Validation| AttnM[Attention Weights Synthesis]
+        SplitNode -->|Independent Validation| UncertM[Pixel Uncertainty Estimation]
+        SplitNode -->|Independent Validation| FeatImp[Feature Importance & Pixel Attribution]
+        
         AttnM & UncertM & FeatImp --> ReconstructionQA[I. Image Quality: PSNR, SSIM, RMSE]
         AttnM & UncertM & FeatImp --> SpectralQA[II. Spectral Integrity: SAM, NDVI Delta]
         AttnM & UncertM & FeatImp --> GeometricQA[III. Geometric Consistency: IoU Score, Boundary Accuracy]
     end
 
     subgraph Disaster [Disaster Emergency Decision Support Engine]
-        ReconstructionQA & SpectralQA & GeometricQA --> FloodSeg[DeepLabV3+ Flood Segmentation]
-        ReconstructionQA & SpectralQA & GeometricQA --> ChangeDet[Siamese ViT Change Detection]
+        SplitNode -->|Hazard Processing| FloodSeg[DeepLabV3+ Flood Segmentation]
+        SplitNode -->|Hazard Processing| ChangeDet[Siamese ViT Change Detection]
         
-        FloodSeg & ChangeDet --> DamEval[Road Accessibility & Bridge Connectivity Evaluator]
-        DamEval --> WaterDepth[Estimated Flood Depth: Model-Based]
-        WaterDepth --> Population[Population Exposure & Hospital Accessibility Indexing]
-        Population --> RescueIndex[Emergency Priority Index]
+        FloodSeg & ChangeDet --> DamEval[Road Accessibility & Bridge Connectivity]
+        DamEval --> WaterDepth[Estimated Flood Severity Index: Model-Based]
+        WaterDepth --> Population[Population Exposure OSM + Census]
+        Population --> Hospital[Hospital Accessibility OSM Roads]
+        Hospital --> RescueIndex[Priority Response Score]
     end
 
     subgraph OutputArray [Full Output Data Array]
-        RescueIndex -->|GeoTIFF Rasters| GeoTiff[GeoTIFF Band Map]
-        RescueIndex -->|Vector Bounds| GeoJson[Flood GeoJSON]
-        RescueIndex -->|XAI Heatmaps| XaiMap[Explainability Maps]
+        ReconstructionQA & SpectralQA & GeometricQA --> ArrayMerge[Output Array Compiler]
+        RescueIndex --> ArrayMerge
+        ArrayMerge -->|Outputs: GeoTIFF, GeoJSON, XAI Maps, Telemetry Stats| MergedOutput[Completed Array]
     end
 
-    subgraph Reporting [Explanation & Output Layer]
-        GeoTiff & GeoJson & XaiMap --> Gemini[Gemini 1.5 Pro Report Generator]
-        Gemini -->|PDF report| PDF[Official Emergency PDF]
-        Gemini -->|PowerPoint| PPTX[Brief PowerPoint Briefing]
-        Gemini -->|Executive Summary| Summary[Interactive Executive Chat]
+    subgraph Reporting [Explanation & Summary Layer]
+        MergedOutput --> Gemini[Gemini 1.5 Pro Report Generator]
+        Gemini -->|Natural Language Report| PDF[Official Emergency PDF]
+        Gemini -->|Brief Slides| PPTX[Brief PowerPoint Briefing]
+        Gemini -->|Interactive Chat| Summary[Interactive Executive Chat]
     end
 
     Summary --> User
@@ -102,22 +123,54 @@ graph TD
 
 ---
 
-## 🛠️ Detailed Preprocessing Chains
+### ⏱️ Level 3: Sequence Diagram
+Sequence of runtime interactions across core system components:
 
-### 1. SAR Preprocessing
-- **Orbit Correction**: Updates metadata coordinates using precise Sentinel Orbit State Vectors.
-- **Thermal Noise Removal**: Strips noise contamination in sub-swaths.
-- **Radiometric Calibration**: Converts pixel digital numbers to physical sigma-nought values.
-- **Terrain Correction**: Resolves geometric distortions (layover, shadow) using SRTM 30m DEM arrays.
-- **Speckle Filtering**: Dampens radar speckle backscatter noise using a 5x5 Refined Lee filter.
-- **Normalization**: Scales backscatter bands to standardized training ranges.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User GIS Client
+    participant API as FastAPI Gateway
+    participant Orch as Central Workflow Orchestrator
+    participant Cache as Object Storage & DB Cache
+    participant Prep as Geoprocessing Modules
+    participant AI as Multi-Temporal Fusion Engine
+    participant QA as QA Validation Split
+    participant LLM as Gemini Report Generator
 
-### 2. Optical Preprocessing
-- **TOA Calibration**: Standardizes sensor input variables based on solar distance and acquisition date.
-- **Atmospheric Correction**: Dark Object Subtraction (DOS) offsets haze.
-- **Band Normalization**: Standardizes multi-spectral channels (R, G, B, NIR).
-- **Histogram Matching**: Radiometric conversion of historical baselines using the target scene histogram.
-- **Seasonal Normalization**: Corrects phenological variations across seasonal offsets.
+    User->>API: POST /api/reconstruct/trigger (AOI coordinates)
+    API->>Orch: Enqueue task in background
+    API-->>User: 202 Accepted (Task ID)
+    
+    activate Orch
+    Orch->>Cache: Check cache footprints
+    alt Cache Hit
+        Cache-->>Orch: Return cached rasters
+    else Cache Miss
+        Cache-->>Orch: Catalog query download
+        Orch->>Prep: Execute SAR & Optical Preprocessing
+        Prep-->>Orch: Return calibrated rasters
+    end
+
+    Orch->>AI: Trigger physics-guided multi-temporal fusion
+    AI-->>Orch: Return cloud-free reconstructed optical scene
+    
+    par Quality Verification
+        Orch->>QA: Execute QA Validation Split (PSNR, SSIM, SAM, IoU)
+        QA-->>Orch: Return verification metrics
+    and Disaster Analytics
+        Orch->>Prep: Run Flood segmenters & OSM exposure mapping
+        Prep-->>Orch: Return severity and accessibility statistics
+    end
+
+    Orch->>LLM: Summarize outputs for briefing
+    LLM-->>Orch: Return PDF report & natural language brief
+    Orch-->>API: Task state = COMPLETED
+    deactivate Orch
+    
+    User->>API: GET /api/reconstruct/status (Task ID)
+    API-->>User: 200 OK (Rasters, split metrics, and Gemini briefs)
+```
 
 ---
 
