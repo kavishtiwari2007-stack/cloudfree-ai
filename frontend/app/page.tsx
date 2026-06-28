@@ -16,14 +16,13 @@ import {
   BarChart4
 } from 'lucide-react';
 
-// Location Constants with remote-sensing ranked metadata & quality metrics
 const LOCATIONS = {
   kerala: {
     name: "Kerala Coastal Plains (Monsoon Flooding)",
     lat: 9.9312,
     lon: 76.2673,
-    stats: { floodArea: "42.8 km²", vegDamage: "18.4%", roadDamage: "12,450 m", settlements: "148 villages", severity: "CRITICAL" },
-    metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad" },
+    stats: { floodArea: "42.8 km²", waterDepth: "1.24 m", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
+    metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", conf: "92.4%", reliability: "0.9240" },
     rankings: [
       { id: "RS2_L4_2024", date: "2024-02-12", cloud: "0.2%", rank: 1, sensor: "Resourcesat-2" },
       { id: "RS2_L4_2023", date: "2023-01-20", cloud: "2.1%", rank: 2, sensor: "Resourcesat-2" },
@@ -32,7 +31,7 @@ const LOCATIONS = {
     report: `## DISASTER ASSESSMENT: KERALA MONSOON FLOODING
 - **Reconstruction Confidence:** 92.4%
 - **Inundated Area:** 42.8 sq km
-- **Settlement Impact:** 148 villages flooded.
+- **Avg Water Depth:** 1.24 meters
 - **NH-66 Road Blockage:** 12.4 km submerged.
 
 > **CRITICAL DIRECTIVE:** Evacuate Vembanad Lake margins and deploy SDRF rescue assets.`
@@ -41,17 +40,17 @@ const LOCATIONS = {
     name: "Uttarakhand Valleys (Cloudburst & Landslide)",
     lat: 30.7346,
     lon: 79.0669,
-    stats: { floodArea: "4.2 km²", vegDamage: "32.1%", roadDamage: "3,800 m", settlements: "12 villages", severity: "HIGH" },
-    metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad" },
+    stats: { floodArea: "4.2 km²", waterDepth: "0.45 m", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
+    metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", conf: "88.7%", reliability: "0.8870" },
     rankings: [
       { id: "RS2_L4_2025", date: "2025-03-01", cloud: "0.5%", rank: 1, sensor: "Resourcesat-2" },
       { id: "RS2A_L4_2024", date: "2024-04-10", cloud: "1.8%", rank: 2, sensor: "Resourcesat-2A" },
       { id: "CARTOSAT_2023", date: "2023-11-22", cloud: "3.1%", rank: 3, sensor: "Cartosat-1" }
     ],
-    report: `## DISASTER ASSESSMENT: UTTARAKHAND LANDSLIDE
+    report: `## DISASTER ASSESSMENT: BLAZING LANDSLIDE DEBRIS
 - **Reconstruction Confidence:** 88.7%
 - **Inundated Area:** 4.2 sq km
-- **Settlement Impact:** 12 hamlets isolated.
+- **Avg Debris Depth:** 0.45 meters
 - **NH-107 Road Blockage:** 3.8 km slope debris.
 
 > **HAZARD ALERT:** Landslide dam blocking river channel. Evacuate downstream gorges.`
@@ -60,8 +59,8 @@ const LOCATIONS = {
     name: "Chennai Basin (Cyclone Inundation)",
     lat: 13.0827,
     lon: 80.2707,
-    stats: { floodArea: "56.1 km²", vegDamage: "8.2%", roadDamage: "28,600 m", settlements: "842 urban blocks", severity: "CRITICAL" },
-    metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad" },
+    stats: { floodArea: "56.1 km²", waterDepth: "2.10 m", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
+    metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", conf: "94.1%", reliability: "0.9410" },
     rankings: [
       { id: "RS2A_L4_2025", date: "2025-05-18", cloud: "0.1%", rank: 1, sensor: "Resourcesat-2A" },
       { id: "RS2_L4_2024", date: "2024-06-02", cloud: "2.4%", rank: 2, sensor: "Resourcesat-2" },
@@ -70,7 +69,7 @@ const LOCATIONS = {
     report: `## DISASTER ASSESSMENT: CHENNAI CYCLONE FLOODING
 - **Reconstruction Confidence:** 94.1%
 - **Inundated Area:** 56.1 sq km
-- **Settlement Impact:** 842 municipal blocks flooded.
+- **Avg Inundation Depth:** 2.10 meters
 - **Road Blockage:** 28.6 km city roads submerged.
 
 > **SAFETY WARNING:** Industrial runoff detected in flood waters. Distribute clean drinking water.`
@@ -83,21 +82,23 @@ export default function GISDashboard() {
   const [locationKey, setLocationKey] = useState<LocationKey>('kerala');
   const [pipelineProgress, setPipelineProgress] = useState(0);
   const [pipelineStatus, setPipelineStatus] = useState('READY');
-  const [logs, setLogs] = useState<string[]>(['[SYSTEM] Core spatial engine initialized. Ready.']);
+  const [logs, setLogs] = useState<string[]>(['[SYSTEM] Core orchestrator engine initialized. Ready.']);
   const [activeLayers, setActiveLayers] = useState<string[]>(['cloudy']);
   const [opacity, setOpacity] = useState(80);
   const [timelineVal, setTimelineVal] = useState(4);
   const [isSwipeMode, setIsSwipeMode] = useState(false);
-  const [inspectorData, setInspectorData] = useState({ lat: 0, lon: 0, conf: '--', ndvi: '--', surface: 'Outside Scene', delta: '--' });
+  const [inspectorData, setInspectorData] = useState({ lat: 0, lon: 0, conf: '--', reliability: '--', attnWeight: '--', ndvi: '--', surface: 'Outside Scene', delta: '--' });
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [report, setReport] = useState('');
-  const [stats, setStats] = useState({ floodArea: '--', vegDamage: '--', roadDamage: '--', settlements: '--', severity: 'READY' });
-  const [valMetrics, setValMetrics] = useState({ psnr: '--', ssim: '--', rmse: '--', sam: '--', qaCheck: 'READY' });
+  const [stats, setStats] = useState({ floodArea: '--', waterDepth: '--', roadDamage: '--', priorityScore: '--', severity: 'READY' });
+  const [valMetrics, setValMetrics] = useState({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', conf: '--', reliability: '--', qaCheck: 'READY' });
   
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
   const loc = LOCATIONS[locationKey];
+  const W = 512;
+  const H = 512;
 
   useEffect(() => {
     drawRasterLayer();
@@ -117,14 +118,9 @@ export default function GISDashboard() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
-
-    // Base background (Land)
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, W, H);
 
-    // Draw Grid Lines
     ctx.strokeStyle = 'rgba(2, 132, 199, 0.1)';
     ctx.lineWidth = 1;
     for (let x = 0; x < W; x += 40) {
@@ -151,7 +147,7 @@ export default function GISDashboard() {
       const isChennai = locationKey === 'chennai';
 
       if (layerType === 'historical' || layerType === 'reconstructed' || layerType === 'cloudy') {
-        ctx.fillStyle = '#166534'; // Green vegetation
+        ctx.fillStyle = '#166534';
         ctx.fillRect(0, 0, W, H);
 
         ctx.fillStyle = '#475569';
@@ -196,10 +192,10 @@ export default function GISDashboard() {
       if (layerType === 'sar') {
         ctx.fillStyle = '#1e293b';
         ctx.fillRect(0, 0, W, H);
-        for (let i = 0; i < 5000; i++) {
+        for (let i = 0; i < 4000; i++) {
           const rx = Math.random() * W;
           const ry = Math.random() * H;
-          const tone = Math.floor(Math.random() * 120) + 60;
+          const tone = Math.floor(Math.random() * 110) + 70;
           ctx.fillStyle = `rgb(${tone}, ${tone}, ${tone})`;
           ctx.fillRect(rx, ry, 2, 2);
         }
@@ -277,9 +273,36 @@ export default function GISDashboard() {
       if (layerType === 'cloudy') {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.beginPath(); ctx.arc(270, 220, 120, 0, Math.PI * 2); ctx.fill();
-
         ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
         ctx.beginPath(); ctx.arc(250, 200, 120, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // XAI Layer: Attention Map
+      if (layerType === 'attention') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        if (isKerala) {
+          ctx.arc(230, 280, 50, 0, Math.PI * 2);
+        } else if (isUK) {
+          ctx.moveTo(180, 210); ctx.lineTo(280, 240); ctx.lineTo(270, 290); ctx.lineTo(170, 250); ctx.closePath();
+        } else if (isChennai) {
+          ctx.rect(80, 80, 120, 100); ctx.arc(220, 280, 70, 0, Math.PI * 2);
+        }
+        ctx.stroke();
+      }
+
+      // XAI Layer: Uncertainty Map
+      if (layerType === 'uncertainty') {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, W, H);
+        const grad = ctx.createRadialGradient(250, 200, 10, 250, 200, 150);
+        grad.addColorStop(0, '#fff');
+        grad.addColorStop(1, '#000');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(250, 200, 150, 0, Math.PI * 2); ctx.fill();
       }
 
       ctx.restore();
@@ -314,6 +337,8 @@ export default function GISDashboard() {
     const lon = loc.lon + lonOffset;
 
     let conf = '98%';
+    let reliability = '0.9810';
+    let attnWeight = '0.04';
     let ndvi = '0.68';
     let surface = 'Vegetation Canopy';
     let delta = '0.00';
@@ -322,22 +347,28 @@ export default function GISDashboard() {
 
     if (locationKey === 'kerala' && dist < 50) {
       conf = '82%';
+      reliability = '0.8240';
+      attnWeight = '0.88 (Water boundary)';
       ndvi = '-0.12';
-      surface = 'Flood Submersion';
+      surface = 'Flood Inundation';
       delta = '+0.82 (Water)';
     } else if (locationKey === 'uttarakhand' && x > 170 && x < 280 && y > 210 && y < 290) {
       conf = '76%';
+      reliability = '0.7580';
+      attnWeight = '0.94 (Debris node)';
       ndvi = '+0.06';
       surface = 'Landslide Debris';
       delta = '-0.52 (Veg Loss)';
     } else if (locationKey === 'chennai' && (dist < 70 || (x > 80 && x < 200 && y > 80 && y < 180))) {
       conf = '91%';
+      reliability = '0.9120';
+      attnWeight = '0.85 (Urban boundary)';
       ndvi = '-0.08';
-      surface = 'Urban Flood Inundation';
+      surface = 'Urban Flood';
       delta = '+0.76 (Water)';
     }
 
-    setInspectorData({ lat, lon, conf, ndvi, surface, delta });
+    setInspectorData({ lat, lon, conf, reliability, attnWeight, ndvi, surface, delta });
   };
 
   const runPipeline = () => {
@@ -347,17 +378,18 @@ export default function GISDashboard() {
     setLogs([]);
     
     const steps = [
-      { t: 'Querying ISRO Bhoonidhi archives for LISS-IV & Sentinel-1 footprints...', p: 10 },
-      { t: 'Running Historical Image Search Engine (Ranking reference scenes)...', p: 20 },
-      { t: `Best Reference Selection: Ranked ${loc.rankings[0].id} as baseline reference...`, p: 30 },
-      { t: 'Verifying metadata (Bands matching, EPSG:32643 UTM Projection verified)...', p: 40 },
-      { t: 'Applying Refined Lee Filter to Sentinel-1 SAR speckle reduction...', p: 50 },
-      { t: 'Resampling spatial grids to 10m spatial registration...', p: 60 },
-      { t: 'Co-registering scene features using LoFTR sub-pixel alignment...', p: 70 },
-      { t: 'Segmenting cloud decks (U-Net Fmask network detected 78% cover)...', p: 80 },
-      { t: 'Reconstructing optical channels under clouds (Diffusion Model)...', p: 90 },
-      { t: 'Performing Spectral Validation Checks: PSNR, SSIM, RMSE, and SAM calculation...', p: 96 },
-      { t: 'Disaster assessment complete. Generating intelligence reports...', p: 100 }
+      { t: 'Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...', p: 8 },
+      { t: 'Orchestrator: Ranking reference imagery (Cloud percentage, Season, Solar Elevation)...', p: 15 },
+      { t: `Orchestrator: Best Reference Selection: Ranked ${loc.rankings[0].id} as baseline reference...`, p: 22 },
+      { t: 'Orchestrator: Download Manager pulling current Sentinel-1 SAR orbit files and optical bands...', p: 30 },
+      { t: 'Orchestrator: Verifying metadata variables, band compatibility, and coordinate bounds...', p: 38 },
+      { t: 'Orchestrator: SAR Preprocessing (Orbit Correction -> Calibration -> Terrain Correction -> Lee Speckle Filter)...', p: 48 },
+      { t: 'Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric DOS -> Histogram Matching)...', p: 58 },
+      { t: 'Orchestrator: Swapping registry models (CloudNet_v1.2 and TemporalDiffusion_v3.4 loaded)...', p: 68 },
+      { t: 'Orchestrator: Running Temporal Fusion Transformer & Denoising Diffusion Reconstruction...', p: 82 },
+      { t: 'Orchestrator: Synthesizing Explainability Layer (generating Attention maps and Uncertainty maps)...', p: 90 },
+      { t: 'Orchestrator: Executing multi-category QA Validation split (Reconstruction, Spectral, Uncertainty)...', p: 96 },
+      { t: 'Orchestrator: Disaster assessment complete. Generating intelligence reports...', p: 100 }
     ];
 
     steps.forEach((step, idx) => {
@@ -368,21 +400,21 @@ export default function GISDashboard() {
         if (idx === steps.length - 1) {
           completePipeline();
         }
-      }, (idx + 1) * 800);
+      }, (idx + 1) * 650);
     });
   };
 
   const completePipeline = () => {
     setPipelineRunning(false);
     setPipelineStatus('NOMINAL');
-    addLog('[SUCCESS] Image reconstruction & validation checks passed. Spatial maps loaded.');
+    addLog('[SUCCESS] Image reconstruction & validation checks passed. Attention mapping online.');
 
-    setActiveLayers(['reconstructed', 'flood']);
+    setActiveLayers(['reconstructed', 'flood', 'attention']);
     setStats({
       floodArea: loc.stats.floodArea,
-      vegDamage: loc.stats.vegDamage,
+      waterDepth: loc.stats.waterDepth,
       roadDamage: loc.stats.roadDamage,
-      settlements: loc.stats.settlements,
+      priorityScore: loc.stats.priorityScore,
       severity: loc.stats.severity
     });
 
@@ -391,6 +423,9 @@ export default function GISDashboard() {
       ssim: loc.metrics.ssim,
       rmse: loc.metrics.rmse,
       sam: loc.metrics.sam,
+      ndviDelta: loc.metrics.ndviDelta,
+      conf: loc.metrics.conf,
+      reliability: loc.metrics.reliability,
       qaCheck: 'PASSED'
     });
 
@@ -429,6 +464,10 @@ export default function GISDashboard() {
             </span>
           </div>
           <div>
+            <span className="text-slate-500">ORCHESTRATOR:</span>
+            <span className="text-cyanGlow font-bold ml-1">Central Workflow Active</span>
+          </div>
+          <div className="hidden xl:block">
             <span className="text-slate-500">ACTIVE POSITION:</span>
             <span className="text-slate-300 ml-1 font-mono">
               {inspectorData.lat ? `${inspectorData.lat.toFixed(4)}°N, ${inspectorData.lon.toFixed(4)}°E` : 'Searching Sensor...'}
@@ -451,7 +490,7 @@ export default function GISDashboard() {
             {/* Step 1: Location selection */}
             <div className="border border-border rounded bg-background/70 overflow-hidden">
               <div className="p-2.5 bg-border/50 text-xs font-bold flex justify-between items-center border-b border-border">
-                <span>1. GEOSPATIAL REGION</span>
+                <span>1. GEOSPATIAL DATA SEARCH</span>
                 <ChevronDown className="w-3 h-3 text-slate-500" />
               </div>
               <div className="p-3 space-y-3">
@@ -461,8 +500,8 @@ export default function GISDashboard() {
                     value={locationKey}
                     onChange={(e) => {
                       setLocationKey(e.target.value as LocationKey);
-                      setStats({ floodArea: '--', vegDamage: '--', roadDamage: '--', settlements: '--', severity: 'READY' });
-                      setValMetrics({ psnr: '--', ssim: '--', rmse: '--', sam: '--', qaCheck: 'READY' });
+                      setStats({ floodArea: '--', waterDepth: '--', roadDamage: '--', priorityScore: '--', severity: 'READY' });
+                      setValMetrics({ psnr: '--', ssim: '--', rmse: '--', sam: '--', ndviDelta: '--', conf: '--', reliability: '--', qaCheck: 'READY' });
                       setReport('');
                       setActiveLayers(['cloudy']);
                       addLog(`Switched target scene to: ${e.target.value}`);
@@ -488,8 +527,8 @@ export default function GISDashboard() {
                 {/* Reference list ranking UI */}
                 <div className="p-2 bg-background border border-border rounded text-[9px] space-y-1">
                   <div className="font-semibold text-cyanGlow border-b border-border pb-0.5 flex justify-between">
-                    <span>HISTORICAL REFERENCE RANKINGS</span>
-                    <span className="text-emerald-400 font-bold">0.2% Cloud</span>
+                    <span>REFERENCE IMAGERY CHRONO RANK</span>
+                    <span className="text-emerald-400 font-bold">Cloud-Free</span>
                   </div>
                   {loc.rankings.map(item => (
                     <div key={item.id} className="flex justify-between border-b border-border/30 pb-0.5 pt-0.5">
@@ -505,25 +544,24 @@ export default function GISDashboard() {
             {/* Step 2: Model Configuration */}
             <div className="border border-border rounded bg-background/70 overflow-hidden">
               <div className="p-2.5 bg-border/50 text-xs font-bold flex justify-between items-center border-b border-border">
-                <span>2. MODEL CONFIGURATION</span>
+                <span>2. MODEL REGISTRY CONFIG</span>
                 <ChevronDown className="w-3 h-3 text-slate-500" />
               </div>
               <div className="p-3 space-y-2 text-[10px] text-slate-300">
                 <div className="flex justify-between">
-                  <span>Reconstruction Model:</span>
-                  <span className="text-cyanGlow font-bold">Diffusion / DSen2-CR</span>
+                  <span>Reconstruction Checkpoint:</span>
+                  <span className="text-cyanGlow font-bold">TemporalDiffusion_v3.4</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Cloud Segmentation:</span>
-                  <span className="text-cyanGlow font-bold">U-Net (CloudNet)</span>
+                  <span>Cloud Net weight:</span>
+                  <span className="text-cyanGlow font-bold">CloudNet_v1.2</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Co-Registration:</span>
-                  <span className="text-cyanGlow font-bold">LoFTR Matcher</span>
+                  <span>Co-Registration GNN:</span>
+                  <span className="text-cyanGlow font-bold">LoFTR_ResNet_v2.0</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Flood Mapping:</span>
-                  <span className="text-cyanGlow font-bold">DeepLabV3+</span>
+                <div className="border-t border-border/30 pt-1.5 mt-1.5 text-[9px] text-slate-500">
+                  <i className="fa-solid fa-database mr-1"></i> ModelRegistry: active, weights online
                 </div>
               </div>
             </div>
@@ -534,7 +572,7 @@ export default function GISDashboard() {
               disabled={pipelineRunning}
               className="w-full py-2 bg-gradient-to-r from-cyanGlow to-cyanGlow/80 hover:from-cyanGlow hover:to-cyanGlow text-[#fff] font-bold text-xs rounded tracking-widest transition-all shadow-lg flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Satellite className="w-3.5 h-3.5" /> TRIGGER AI PIPELINE
+              <Satellite className="w-3.5 h-3.5" /> TRIGGER ORCHESTRATOR
             </button>
           </div>
 
@@ -564,8 +602,8 @@ export default function GISDashboard() {
           <div className="flex-1 relative overflow-hidden flex items-center justify-center">
             <canvas 
               ref={canvasRef}
-              width={512}
-              height={512}
+              width={W}
+              height={H}
               onMouseMove={handleMouseMove}
               className="border border-border/40 cursor-crosshair rounded max-w-full max-h-full"
             />
@@ -575,14 +613,14 @@ export default function GISDashboard() {
               <h4 className="font-bold text-slate-300 border-b border-border pb-1 mb-1.5 flex items-center gap-1"><Layers className="w-3 h-3" /> GIS MAP LEGENDS</h4>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 w-16">Confidence:</span>
+                  <span class="text-slate-400 w-16">Confidence:</span>
                   <div className="w-20 h-2 bg-gradient-to-r from-red-600 via-yellow-500 to-green-600 rounded"></div>
                   <span className="text-slate-300">0-100%</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 w-16">Flood Extent:</span>
-                  <span className="w-4 h-2 bg-cyanGlow/40 border border-cyan-300 rounded inline-block"></span>
-                  <span className="text-slate-300">Inundation</span>
+                  <span className="text-slate-400 w-16">Attention:</span>
+                  <span className="w-4 h-2 bg-yellow-400 border border-yellow-300 rounded inline-block"></span>
+                  <span className="text-slate-300">Hotspots</span>
                 </div>
               </div>
             </div>
@@ -600,12 +638,14 @@ export default function GISDashboard() {
                 <span className="text-right text-orangeGlow font-bold">{inspectorData.lon ? inspectorData.lon.toFixed(4) : '--'}</span>
                 <span>Confidence:</span>
                 <span className="text-right text-emerald-400 font-bold">{inspectorData.conf}</span>
+                <span>Reliability:</span>
+                <span className="text-right text-emerald-400 font-bold">{inspectorData.reliability}</span>
+                <span>Attention Wt:</span>
+                <span className="text-right text-yellow-400 font-bold">{inspectorData.attnWeight}</span>
                 <span>NDVI:</span>
                 <span className="text-right text-emerald-400 font-bold">{inspectorData.ndvi}</span>
                 <span>Surface:</span>
                 <span className="text-right truncate">{inspectorData.surface}</span>
-                <span>Delta:</span>
-                <span className="text-right text-red-400">{inspectorData.delta}</span>
               </div>
             </div>
 
@@ -640,7 +680,7 @@ export default function GISDashboard() {
                   }}
                   className={`px-2 py-1 text-[9px] font-bold rounded ${isSwipeMode ? 'bg-cyanGlow text-white' : 'bg-border text-slate-400'}`}
                 >
-                  SWIPE COMPARISON
+                  SWIPE
                 </button>
               </div>
 
@@ -659,7 +699,9 @@ export default function GISDashboard() {
                     confidence: { label: "5. Confidence Map", c: "#eab308" },
                     flood: { label: "6. Flood Vector Overlay", c: "#06b6d4" },
                     ndvi: { label: "7. NDVI Canopy", c: "#15803d" },
-                    difference: { label: "8. Difference map", c: "#ef4444" }
+                    difference: { label: "8. Difference map", c: "#ef4444" },
+                    attention: { label: "9. Attention Map (XAI)", c: "#fde047" },
+                    uncertainty: { label: "10. Uncertainty Map (XAI)", c: "#cbd5e1" }
                   }).map(([key, meta]) => (
                     <label key={key} className="flex items-center gap-1.5 cursor-pointer hover:bg-border/30 p-0.5 rounded">
                       <input 
@@ -691,7 +733,7 @@ export default function GISDashboard() {
         {/* Right Panel: Intelligence Diagnostics */}
         <section className="w-96 border-l border-border bg-card/85 backdrop-blur flex flex-col overflow-y-auto shrink-0 z-40">
           <div className="p-3 border-b border-border bg-cyanGlow/5 flex justify-between items-center">
-            <span className="text-xs font-bold text-cyanGlow tracking-widest flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> DISASTER INTELLIGENCE</span>
+            <span className="text-xs font-bold text-cyanGlow tracking-widest flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> DISASTER TELEMETRY</span>
             <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold border ${
               stats.severity === 'CRITICAL' ? 'bg-red-950/20 text-red-400 border-red-500/40' : 
               stats.severity === 'HIGH' ? 'bg-orange-950/20 text-orange-400 border-orange-500/40' : 'bg-slate-900 text-slate-400 border-slate-700'
@@ -707,45 +749,72 @@ export default function GISDashboard() {
               <span className="text-sm font-bold text-cyanGlow mt-0.5">{stats.floodArea}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
-              <span className="block text-slate-400 text-[8px] uppercase">NDVI Loss</span>
-              <span className="text-sm font-bold text-orangeGlow mt-0.5">{stats.vegDamage}</span>
+              <span className="block text-slate-400 text-[8px] uppercase">Avg Water Depth</span>
+              <span className="text-sm font-bold text-cyanGlow mt-0.5">{stats.waterDepth}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
-              <span className="block text-slate-400 text-[8px] uppercase">Submerged Roads</span>
+              <span className="block text-slate-400 text-[8px] uppercase">NH Road Submersion</span>
               <span className="text-sm font-bold text-red-400 mt-0.5">{stats.roadDamage}</span>
             </div>
             <div className="bg-background border border-border p-2 rounded">
-              <span className="block text-slate-400 text-[8px] uppercase">Inundated Hamlets</span>
-              <span className="text-sm font-bold text-red-500 mt-0.5">{stats.settlements}</span>
+              <span className="block text-slate-400 text-[8px] uppercase">Priority Rescue Index</span>
+              <span className="text-sm font-bold text-orangeGlow mt-0.5">{stats.priorityScore}</span>
             </div>
           </div>
 
           {/* Scientific Validation Metrics */}
-          <div className="p-3 border-b border-border bg-[#070b13]/90">
-            <div className="text-[10px] font-bold text-cyanGlow tracking-wider mb-2 flex justify-between items-center">
-              <span className="flex items-center gap-1.5"><BarChart4 className="w-3.5 h-3.5 text-cyanGlow" /> QUALITY METRICS</span>
+          <div className="p-3 border-b border-border bg-[#070b13]/90 space-y-2">
+            <div className="text-[10px] font-bold text-cyanGlow tracking-wider border-b border-border pb-1 flex justify-between items-center">
+              <span className="flex items-center gap-1.5"><BarChart4 className="w-3.5 h-3.5 text-cyanGlow" /> QA VALIDATION SPLIT</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold border ${
                 valMetrics.qaCheck === 'PASSED' ? 'bg-emerald-950/20 text-emerald-400 border-emerald-500/40' : 'bg-slate-900 text-slate-400 border-slate-700'
               }`}>
                 {valMetrics.qaCheck}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] text-slate-300 font-mono">
-              <div className="flex justify-between border-b border-border/30 pb-0.5">
-                <span className="text-slate-500">PSNR Value:</span>
-                <span className="font-bold text-cyanGlow">{valMetrics.psnr}</span>
+            
+            {/* Reconstruction */}
+            <div className="space-y-0.5">
+              <span className="block text-[8px] text-orangeGlow uppercase font-bold">I. Reconstruction Verification</span>
+              <div className="grid grid-cols-3 gap-1 text-[8px] text-slate-300 font-mono text-center">
+                <div className="bg-background border border-border/50 py-0.5 rounded">
+                  <span className="block text-[7px] text-slate-500">PSNR (dB)</span>
+                  <span className="font-bold text-cyanGlow">{valMetrics.psnr}</span>
+                </div>
+                <div className="bg-background border border-border/50 py-0.5 rounded">
+                  <span className="block text-[7px] text-slate-500">SSIM Index</span>
+                  <span className="font-bold text-emerald-400">{valMetrics.ssim}</span>
+                </div>
+                <div className="bg-background border border-border/50 py-0.5 rounded">
+                  <span className="block text-[7px] text-slate-500">RMSE Diff</span>
+                  <span className="font-bold text-orangeGlow">{valMetrics.rmse}</span>
+                </div>
               </div>
-              <div className="flex justify-between border-b border-border/30 pb-0.5">
-                <span className="text-slate-500">SSIM Index:</span>
-                <span className="font-bold text-emerald-400">{valMetrics.ssim}</span>
+            </div>
+
+            {/* Spectral & Uncertainty */}
+            <div className="grid grid-cols-2 gap-2 text-[8px] font-mono text-slate-300 pt-1">
+              <div>
+                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">II. Spectral</span>
+                <div className="flex justify-between border-b border-border/30 pb-0.5">
+                  <span className="text-slate-500">SAM (rad):</span>
+                  <span className="font-bold text-cyanGlow">{valMetrics.sam}</span>
+                </div>
+                <div className="flex justify-between border-b border-border/30 pb-0.5">
+                  <span className="text-slate-500">NDVI Delta:</span>
+                  <span className="font-bold text-emerald-400">{valMetrics.ndviDelta}</span>
+                </div>
               </div>
-              <div className="flex justify-between border-b border-border/30 pb-0.5">
-                <span className="text-slate-500">RMSE Diff:</span>
-                <span className="font-bold text-orangeGlow">{valMetrics.rmse}</span>
-              </div>
-              <div className="flex justify-between border-b border-border/30 pb-0.5">
-                <span className="text-slate-500">SAM (rad):</span>
-                <span className="font-bold text-cyanGlow">{valMetrics.sam}</span>
+              <div>
+                <span className="block text-[7px] text-orangeGlow uppercase font-bold mb-0.5">III. Uncertainty</span>
+                <div className="flex justify-between border-b border-border/30 pb-0.5">
+                  <span className="text-slate-500">Confidence:</span>
+                  <span className="font-bold text-cyanGlow">{valMetrics.conf}</span>
+                </div>
+                <div className="flex justify-between border-b border-border/30 pb-0.5">
+                  <span className="text-slate-500">Reliability:</span>
+                  <span className="font-bold text-emerald-400">{valMetrics.reliability}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -757,7 +826,7 @@ export default function GISDashboard() {
               <span className="text-[8px] text-slate-500">GEMINI 1.5 PRO API</span>
             </div>
             
-            <div className="flex-1 bg-[#070b13] border border-border rounded p-3 text-[11px] text-slate-300 overflow-y-auto leading-relaxed max-h-[250px] font-sans">
+            <div className="flex-1 bg-[#070b13] border border-border rounded p-3 text-[11px] text-slate-300 overflow-y-auto leading-relaxed max-h-[190px] font-sans">
               {report ? (
                 <div className="space-y-2">
                   <div className="text-xs font-bold text-cyanGlow uppercase font-mono border-b border-border pb-1 flex items-center gap-1">
@@ -774,7 +843,7 @@ export default function GISDashboard() {
             </div>
 
             {/* Export buttons */}
-            <div className="mt-4 space-y-2 font-mono">
+            <div className="mt-3 space-y-2 font-mono">
               <div className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">System Export Handlers</div>
               <div className="grid grid-cols-2 gap-2">
                 <button 

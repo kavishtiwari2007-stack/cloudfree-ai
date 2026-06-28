@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
             lon: 76.2673,
             zoom: 13,
             bounds: [[9.90, 76.23], [9.96, 76.30]],
-            stats: { floodArea: "42.8 km²", vegDamage: "18.4%", roadDamage: "12,450 m", settlements: "148 villages", severity: "CRITICAL" },
-            metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad" },
+            stats: { floodArea: "42.8 km²", waterDepth: "1.24 m", roadDamage: "12,450 m", priorityScore: "9.4 / 10", severity: "CRITICAL" },
+            metrics: { psnr: "29.45 dB", ssim: "0.912", rmse: "0.038", sam: "0.035 rad", ndviDelta: "0.045", conf: "92.4%", reliability: "0.9240" },
             rankings: [
                 { id: "RS2_L4_2024", date: "2024-02-12", cloud: "0.2%", rank: 1, sensor: "Resourcesat-2" },
                 { id: "RS2_L4_2023", date: "2023-01-20", cloud: "2.1%", rank: 2, sensor: "Resourcesat-2" },
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ],
             report: `## DISASTER INTELLIGENCE ASSESSMENT: KERALA MONSOON FLOODING
 **NRSC Mission Command ID: BAH-2026-KL09**
-**Analysis Timestamp:** 2026-06-28 15:15:00 UTC
+**Analysis Timestamp:** 2026-06-29 00:00:00 UTC
 
 ### 1. Executive Summary
 A heavy precipitation event triggered by active monsoon currents has resulted in catastrophic flooding across the Kerala coastal plains. CloudFreeAI processed Resourcesat-2 LISS-IV optical imagery and Sentinel-1 SAR imagery to reconstruct a cloud-free surface assessment under a 78% cloud deck.
@@ -47,8 +47,8 @@ A heavy precipitation event triggered by active monsoon currents has resulted in
             lon: 79.0669,
             zoom: 14,
             bounds: [[30.71, 79.04], [30.76, 79.09]],
-            stats: { floodArea: "4.2 km²", vegDamage: "32.1%", roadDamage: "3,800 m", settlements: "12 villages", severity: "HIGH" },
-            metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad" },
+            stats: { floodArea: "4.2 km²", waterDepth: "0.45 m", roadDamage: "3,800 m", priorityScore: "7.8 / 10", severity: "HIGH" },
+            metrics: { psnr: "27.85 dB", ssim: "0.885", rmse: "0.048", sam: "0.048 rad", ndviDelta: "0.068", conf: "88.7%", reliability: "0.8870" },
             rankings: [
                 { id: "RS2_L4_2025", date: "2025-03-01", cloud: "0.5%", rank: 1, sensor: "Resourcesat-2" },
                 { id: "RS2A_L4_2024", date: "2024-04-10", cloud: "1.8%", rank: 2, sensor: "Resourcesat-2A" },
@@ -56,7 +56,7 @@ A heavy precipitation event triggered by active monsoon currents has resulted in
             ],
             report: `## DISASTER INTELLIGENCE ASSESSMENT: UTTARAKHAND LANDSLIDE
 **NRSC Mission Command ID: BAH-2026-UK30**
-**Analysis Timestamp:** 2026-06-28 15:15:00 UTC
+**Analysis Timestamp:** 2026-06-29 00:00:00 UTC
 
 ### 1. Executive Summary
 A localized cloudburst triggered a major debris flow landslide blocking the Mandakini river channel. CloudFreeAI fused Sentinel-1 radar amplitude (showing texture changes) with historical LISS-IV imagery to resolve structural modifications beneath dense mountain cloud cover.
@@ -82,8 +82,8 @@ A localized cloudburst triggered a major debris flow landslide blocking the Mand
             lon: 80.2707,
             zoom: 13,
             bounds: [[13.05, 80.23], [13.11, 80.30]],
-            stats: { floodArea: "56.1 km²", vegDamage: "8.2%", roadDamage: "28,600 m", settlements: "842 urban blocks", severity: "CRITICAL" },
-            metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad" },
+            stats: { floodArea: "56.1 km²", waterDepth: "2.10 m", roadDamage: "28,600 m", priorityScore: "9.8 / 10", severity: "CRITICAL" },
+            metrics: { psnr: "30.12 dB", ssim: "0.934", rmse: "0.032", sam: "0.029 rad", ndviDelta: "0.031", conf: "94.1%", reliability: "0.9410" },
             rankings: [
                 { id: "RS2A_L4_2025", date: "2025-05-18", cloud: "0.1%", rank: 1, sensor: "Resourcesat-2A" },
                 { id: "RS2_L4_2024", date: "2024-06-02", cloud: "2.4%", rank: 2, sensor: "Resourcesat-2" },
@@ -91,7 +91,7 @@ A localized cloudburst triggered a major debris flow landslide blocking the Mand
             ],
             report: `## DISASTER INTELLIGENCE ASSESSMENT: CHENNAI CYCLONIC FLOODING
 **NRSC Mission Command ID: BAH-2026-TN13**
-**Analysis Timestamp:** 2026-06-28 15:15:00 UTC
+**Analysis Timestamp:** 2026-06-29 00:00:00 UTC
 
 ### 1. Executive Summary
 Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundation of the Chennai metropolitan basin. Synthetic Aperture Radar (SAR) sensors pierced the cyclone's dense cloud eyewall, enabling CloudFreeAI to reconstruct a clear-sky urban damage map.
@@ -128,29 +128,21 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
             attributionControl: false
         }).setView([activeLoc.lat, activeLoc.lon], activeLoc.zoom);
 
-        // Dark-filtered OSM tiles
         baseTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19
         }).addTo(map);
 
         L.control.zoom({ position: "topleft" }).addTo(map);
-        
-        // Add Map scale
         L.control.scale({ position: "bottomleft" }).addTo(map);
 
-        // Position inspector
         map.on("mousemove", (e) => {
             updateInspector(e.latlng);
         });
 
-        // Initialize spatial overlays
         loadOverlays();
-        
-        // Populate historical image reference list
         renderReferenceRanking();
     }
 
-    // Populate Historical Reference list
     function renderReferenceRanking() {
         const list = document.getElementById("reference-ranking-list");
         list.innerHTML = "";
@@ -173,7 +165,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         canvas.height = 512;
         const ctx = canvas.getContext("2d");
         
-        ctx.fillStyle = "#1e293b"; // Dark charcoal land base
+        ctx.fillStyle = "#1e293b";
         ctx.fillRect(0, 0, 512, 512);
 
         const isKerala = locKey === "kerala";
@@ -357,7 +349,6 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         else if (layerType === "ndvi") {
             ctx.fillStyle = "#eab308";
             ctx.fillRect(0, 0, 512, 512);
-
             ctx.fillStyle = "#047857";
             if (isKerala) {
                 ctx.fillRect(0, 0, 200, 100); ctx.fillRect(350, 0, 162, 512);
@@ -385,7 +376,6 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         else if (layerType === "difference") {
             ctx.clearRect(0, 0, 512, 512);
             ctx.fillStyle = "rgba(239, 68, 68, 0.7)";
-
             if (isKerala) {
                 ctx.beginPath(); ctx.arc(220, 310, 45, 0, Math.PI * 2); ctx.arc(150, 180, 28, 0, Math.PI * 2); ctx.fill();
             } else if (isUK) {
@@ -395,6 +385,53 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
             } else if (isChennai) {
                 ctx.beginPath(); ctx.rect(80, 80, 110, 80); ctx.arc(200, 300, 60, 0, Math.PI * 2); ctx.fill();
             }
+        }
+        // New Explainability Layers: Attention Map (XAI)
+        else if (layerType === "attention") {
+            ctx.clearRect(0, 0, 512, 512);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Draw glowing yellow hotspots over edges
+            ctx.strokeStyle = "rgba(253, 224, 71, 0.85)";
+            ctx.shadowColor = "#fde047";
+            ctx.shadowBlur = 15;
+            ctx.lineWidth = 4;
+            
+            ctx.beginPath();
+            if (isKerala) {
+                ctx.arc(220, 310, 45, 0, Math.PI * 2);
+                ctx.arc(150, 180, 28, 0, Math.PI * 2);
+            } else if (isUK) {
+                ctx.moveTo(180, 210); ctx.lineTo(280, 240); ctx.lineTo(270, 290); ctx.lineTo(170, 250); ctx.closePath();
+            } else if (isChennai) {
+                ctx.rect(80, 80, 110, 80);
+                ctx.arc(200, 300, 60, 0, Math.PI * 2);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset
+        }
+        // New Explainability Layers: Uncertainty Map
+        else if (layerType === "uncertainty") {
+            // White under clouds, black in clear areas
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Gaussian blurred uncertainty gradients under cloud coordinates
+            const grad1 = ctx.createRadialGradient(130, 100, 0, 130, 100, 80);
+            grad1.addColorStop(0, "#fff"); // High uncertainty
+            grad1.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = grad1; ctx.beginPath(); ctx.arc(130, 100, 80, 0, Math.PI * 2); ctx.fill();
+
+            const grad2 = ctx.createRadialGradient(300, 230, 0, 300, 230, 110);
+            grad2.addColorStop(0, "#fff");
+            grad2.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = grad2; ctx.beginPath(); ctx.arc(300, 230, 110, 0, Math.PI * 2); ctx.fill();
+
+            const grad3 = ctx.createRadialGradient(100, 360, 0, 100, 360, 90);
+            grad3.addColorStop(0, "#fff");
+            grad3.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = grad3; ctx.beginPath(); ctx.arc(100, 360, 90, 0, Math.PI * 2); ctx.fill();
         }
 
         return canvas.toDataURL();
@@ -408,7 +445,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         overlayLayers = {};
 
         const imageBounds = activeLoc.bounds;
-        const layers = ["cloudy", "historical", "sar", "reconstructed", "confidence", "flood", "ndvi", "difference"];
+        const layers = ["cloudy", "historical", "sar", "reconstructed", "confidence", "flood", "ndvi", "difference", "attention", "uncertainty"];
 
         layers.forEach(layer => {
             const dataUrl = generateRasterLayer(activeLocKey, layer);
@@ -426,14 +463,16 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
 
     // 5. Render Layer Manager
     const layerMetadata = {
-        cloudy: { label: "1. Cloudy Optical (LISS-IV)", color: "#94a3b8", default: true },
-        historical: { label: "2. Historical Optical Reference", color: "#22c55e", default: false },
-        sar: { label: "3. Current Sentinel-1 SAR", color: "#64748b", default: false },
-        reconstructed: { label: "4. AI Reconstructed Optical", color: "#38bdf8", default: false },
-        confidence: { label: "5. Confidence Heatmap", color: "#eab308", default: false },
-        flood: { label: "6. Flood Vector Overlay", color: "#06b6d4", default: false },
-        ndvi: { label: "7. NDVI Canopy Map", color: "#15803d", default: false },
-        difference: { label: "8. Difference Change Map", color: "#ef4444", default: false }
+        cloudy: { label: "1. Cloudy Optical (LISS-IV)", color: "#94a3b8" },
+        historical: { label: "2. Historical Reference", color: "#22c55e" },
+        sar: { label: "3. Current Sentinel-1 SAR", color: "#64748b" },
+        reconstructed: { label: "4. AI Reconstructed Optical", color: "#38bdf8" },
+        confidence: { label: "5. Confidence Map", color: "#eab308" },
+        flood: { label: "6. Flood Vector Overlay", color: "#06b6d4" },
+        ndvi: { label: "7. NDVI Canopy Map", color: "#15803d" },
+        difference: { label: "8. Difference Change Map", color: "#ef4444" },
+        attention: { label: "9. Attention Map (XAI)", color: "#fde047" },
+        uncertainty: { label: "10. Uncertainty Map (XAI)", color: "#cbd5e1" }
     };
 
     function renderLayerManager() {
@@ -477,7 +516,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         });
     }
 
-    // 6. Horizontal Swipe Controller
+    // 6. Swipe Controllers
     const swipeBtn = document.getElementById("btn-mode-swipe");
     const standardBtn = document.getElementById("btn-mode-standard");
     const timelineSlider = document.getElementById("timeline-slider");
@@ -562,7 +601,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         }
     }
 
-    // Opacity Control
+    // Opacity
     const opacitySlider = document.getElementById("opacity-slider");
     const opacityVal = document.getElementById("opacity-val");
 
@@ -592,9 +631,9 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
 
     function resetTelemetryStats() {
         document.getElementById("stat-flood-area").innerText = "--";
-        document.getElementById("stat-veg-damage").innerText = "--";
+        document.getElementById("stat-water-depth").innerText = "--";
         document.getElementById("stat-road-damage").innerText = "--";
-        document.getElementById("stat-settlements").innerText = "--";
+        document.getElementById("stat-priority-score").innerText = "--";
         document.getElementById("report-severity-badge").innerText = "READY";
         document.getElementById("report-severity-badge").className = "text-[9px] bg-slate-500/20 border border-slate-500 text-slate-400 px-1.5 py-0.5 rounded font-bold";
 
@@ -603,10 +642,13 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         document.getElementById("metric-ssim").innerText = "--";
         document.getElementById("metric-rmse").innerText = "--";
         document.getElementById("metric-sam").innerText = "--";
+        document.getElementById("metric-ndvi-delta").innerText = "--";
+        document.getElementById("metric-conf").innerText = "--";
+        document.getElementById("metric-reliability").innerText = "--";
         
-        const badge = document.getElementById("metric-check-badge");
-        badge.innerText = "READY";
-        badge.className = "text-[8px] bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1 py-0.5 rounded font-bold";
+        const qBadge = document.getElementById("metric-check-badge");
+        qBadge.innerText = "READY";
+        qBadge.className = "text-[8px] bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1 py-0.5 rounded font-bold";
 
         document.getElementById("report-content").innerHTML = `
             <div class="h-full flex flex-col justify-center items-center text-center text-slate-500 font-mono text-[10px]">
@@ -617,7 +659,7 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         toggleExports(false);
     }
 
-    // 8. AI Pipeline Execution Engine (Dynamic logs & Quality Assessment checks)
+    // 8. AI Pipeline Execution Engine (Orchestrator Logs & Quality Assessment checks)
     const runBtn = document.getElementById("run-pipeline-btn");
     const termLogs = document.getElementById("terminal-logs");
     const progBar = document.getElementById("pipeline-progress");
@@ -644,17 +686,19 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         const selectedRefId = activeLoc.rankings[0].id;
 
         const steps = [
-            { text: "Querying ISRO Bhoonidhi catalog for LISS-IV + Sentinel-1 SAR footprints...", time: 500, prog: 10 },
-            { text: "Running Historical Reference Image Search Engine...", time: 900, prog: 20 },
-            { text: `Best Reference Selection: Ranked ${selectedRefId} as baseline (Cloud: ${activeLoc.rankings[0].cloud})...`, time: 1400, prog: 30 },
-            { text: "Verifying metadata (Bands matching, EPSG:32643 UTM Projection verified, Timestamps checked)...", time: 1900, prog: 40 },
-            { text: "Applying Refined Lee Filter to Sentinel-1 SAR speckle reduction...", time: 2400, prog: 50 },
-            { text: "Performing spatial resampling (LISS-IV 5.8m upscaled to Sentinel-1 10m grid)...", time: 2900, prog: 60 },
-            { text: "Co-registering scene features using LoFTR sub-pixel alignment...", time: 3400, prog: 70 },
-            { text: "Segmenting cloud decks (U-Net Fmask detected 78% coverage)...", time: 3900, prog: 80 },
-            { text: "Reconstructing optical bands under cloud regions (Temporal Transformer + Diffusion)...", time: 4500, prog: 90 },
-            { text: "Performing Spectral Validation Checks: PSNR, SSIM, RMSE, and SAM calculation...", time: 5100, prog: 95 },
-            { text: "Computing flood segmentation limits and generating Gemini hazard metrics...", time: 5600, prog: 100 }
+            { text: "Orchestrator: Activating Dataset Discovery Engine (Catalog Search -> Metadata Query)...", time: 400, prog: 8 },
+            { text: "Orchestrator: Ranking historical reference scenes (Season, Solar elevation, Cloud %)...", time: 900, prog: 15 },
+            { text: `Orchestrator: Best Reference Selection: ${selectedRefId} chosen (Cloud: ${activeLoc.rankings[0].cloud})...`, time: 1300, prog: 22 },
+            { text: "Orchestrator: Download Manager pulling current Sentinel-1 SAR orbit files and optical bands...", time: 1800, prog: 30 },
+            { text: "Orchestrator: Verifying metadata variables, band compatibility, and coordinate bounds...", time: 2300, prog: 38 },
+            { text: "Orchestrator: SAR Preprocessing (Orbit Correction -> Thermal Noise Removal -> Calibration -> Terrain Correction -> Lee Speckle Filter -> Normalization)...", time: 2900, prog: 48 },
+            { text: "Orchestrator: Optical Preprocessing (TOA Reflectance -> Atmospheric Dark Object Subtraction -> Band Normalization -> Histogram Matching -> Seasonal Normalization)...", time: 3500, prog: 58 },
+            { text: "Orchestrator: Swapping registry models (CloudNet_v1.2 and TemporalDiffusion_v3.4 loaded)...", time: 4000, prog: 68 },
+            { text: "Orchestrator: Geometric Co-Registration using LoFTR sub-pixel alignment...", time: 4500, prog: 74 },
+            { text: "Orchestrator: Running Temporal Fusion Transformer & Denoising Diffusion Reconstruction...", time: 5100, prog: 82 },
+            { text: "Orchestrator: Synthesizing Explainability Layer (generating Attention maps and Uncertainty maps)...", time: 5700, prog: 90 },
+            { text: "Orchestrator: Executing multi-category QA Validation split (Reconstruction, Spectral, Uncertainty)...", time: 6300, prog: 96 },
+            { text: "Orchestrator: Scene reconstruction pipeline successfully finalized. QA passed.", time: 6800, prog: 100 }
         ];
 
         steps.forEach((step, index) => {
@@ -676,29 +720,32 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
         
         pipStatus.innerText = "NOMINAL";
         pipStatus.className = "text-emerald-400 font-bold";
-        appendLog("[SUCCESS] Image reconstruction & validation checks passed. Spatial maps loaded.", "text-emerald-400 font-bold");
+        appendLog("[SUCCESS] Quality Assurance checks passed. Attention mapping online.", "text-emerald-400 font-bold");
 
-        // 1. Show reconstructed & flood overlay layers
+        // 1. Show reconstructed, flood, and attention overlays
         overlayLayers["reconstructed"].addTo(map);
         overlayLayers["flood"].addTo(map);
+        overlayLayers["attention"].addTo(map);
         renderLayerManager();
 
         // 2. Populate stats panels
         document.getElementById("stat-flood-area").innerText = activeLoc.stats.floodArea;
-        document.getElementById("stat-veg-damage").innerText = activeLoc.stats.vegDamage;
+        document.getElementById("stat-water-depth").innerText = activeLoc.stats.waterDepth;
         document.getElementById("stat-road-damage").innerText = activeLoc.stats.roadDamage;
-        document.getElementById("stat-settlements").innerText = activeLoc.stats.settlements;
+        document.getElementById("stat-priority-score").innerText = activeLoc.stats.priorityScore;
 
-        // Update severity level badge
         const badge = document.getElementById("report-severity-badge");
         badge.innerText = activeLoc.stats.severity;
         badge.className = `text-[9px] px-1.5 py-0.5 rounded font-bold severity-${activeLoc.stats.severity.toLowerCase()}`;
 
-        // 3. Populate Quality Validation metrics
+        // 3. Populate QA validation split
         document.getElementById("metric-psnr").innerText = activeLoc.metrics.psnr;
         document.getElementById("metric-ssim").innerText = activeLoc.metrics.ssim;
         document.getElementById("metric-rmse").innerText = activeLoc.metrics.rmse;
         document.getElementById("metric-sam").innerText = activeLoc.metrics.sam;
+        document.getElementById("metric-ndvi-delta").innerText = activeLoc.metrics.ndviDelta;
+        document.getElementById("metric-conf").innerText = activeLoc.metrics.conf;
+        document.getElementById("metric-reliability").innerText = activeLoc.metrics.reliability;
         
         const qBadge = document.getElementById("metric-check-badge");
         qBadge.innerText = "PASSED";
@@ -746,25 +793,31 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
 
         if (latPct >= 0 && latPct <= 1 && lonPct >= 0 && lonPct <= 1) {
             let confVal = 98 - Math.floor((Math.sin(latPct * Math.PI) * Math.sin(lonPct * Math.PI)) * 35);
+            let reliability = (confVal / 100).toFixed(4);
             let ndviVal = (0.72 - (latPct * 0.4) - (lonPct * 0.2)).toFixed(2);
+            let attentionWeight = "0.02";
             let surface = "Dense Canopy";
-            let delta = "0.00";
 
-            if (activeLocKey === "kerala" && Math.hypot(latPct - 0.45, lonPct - 0.45) < 0.25) {
+            const dist = Math.hypot(x = latPct * 512 - 230, y = lonPct * 512 - 280);
+
+            if (activeLocKey === "kerala" && dist < 65) {
                 confVal = 82;
+                reliability = "0.8240";
                 ndviVal = (-0.12).toFixed(2);
+                attentionWeight = "0.88 (Inundation Edge)";
                 surface = "Inundated Area";
-                delta = "+0.84 (Water Spread)";
             } else if (activeLocKey === "uttarakhand" && latPct > 0.4 && latPct < 0.6 && lonPct > 0.3 && lonPct < 0.7) {
                 confVal = 75;
+                reliability = "0.7580";
                 ndviVal = (+0.04).toFixed(2);
+                attentionWeight = "0.94 (Debris Impact)";
                 surface = "Landslide Debris";
-                delta = "-0.48 (Veg Loss)";
             } else if (activeLocKey === "chennai" && (latPct < 0.35 || Math.hypot(latPct - 0.6, lonPct - 0.5) < 0.2)) {
                 confVal = 91;
+                reliability = "0.9120";
                 ndviVal = (-0.08).toFixed(2);
+                attentionWeight = "0.85 (Urban Inundation)";
                 surface = "Urban Inundation";
-                delta = "+0.72 (Water Spread)";
             } else if (ndviVal < 0.1) {
                 surface = "Water Body";
             } else if (ndviVal < 0.35) {
@@ -772,18 +825,20 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
             }
 
             document.getElementById("inspector-conf").innerText = `${confVal}%`;
+            document.getElementById("inspector-reliability").innerText = reliability;
+            document.getElementById("inspector-attention").innerText = attentionWeight;
             document.getElementById("inspector-ndvi").innerText = ndviVal;
             document.getElementById("inspector-surface").innerText = surface;
-            document.getElementById("inspector-delta").innerText = delta;
         } else {
             document.getElementById("inspector-conf").innerText = "--";
+            document.getElementById("inspector-reliability").innerText = "--";
+            document.getElementById("inspector-attention").innerText = "--";
             document.getElementById("inspector-ndvi").innerText = "--";
             document.getElementById("inspector-surface").innerText = "Outside Footprint";
-            document.getElementById("inspector-delta").innerText = "--";
         }
     }
 
-    // 10. Simple Markdown Parser for the AI Report (Tailwind Alerts support)
+    // 10. Simple Markdown Parser
     function parseMarkdown(md) {
         let html = md;
         html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
@@ -850,7 +905,6 @@ Severe Cyclonic Storm 'Asani' brought heavy rainfall, causing extensive inundati
     });
 
     document.getElementById("btn-export-pdf").addEventListener("click", () => {
-        // Direct download link pointing to backend PDF compiler endpoint
         const link = document.createElement("a");
         link.href = `http://localhost:8000/api/reports/download/pdf/${activeLocKey}`;
         link.target = "_blank";
